@@ -1,0 +1,431 @@
+C251 COMPILER V5.60.0,  uart                                                               07/10/23  09:26:56  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE uart
+OBJECT MODULE PLACED IN .\obj\uart.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE Uart\uart.c XSMALL OPTIMIZE(0,SPEED) BROWSE INCDIR(.\Ads1110;.\Flash;.
+                    -\mcp4725;.\IIC;.\MwPro;.\Uart;.\Lcd;.\ModBus;.\Temperaturn) PRINT(.\obj\uart.lst) OBJECT(.\obj\uart.obj) 
+
+stmt  level    source
+
+    1          #include "main.h"
+    2          #include "Lcd.h"
+    3          #include "FlowMeter.h"
+    4          #include "ModBusDev.h"
+    5          
+    6          u16 Rx1_Timer  = 0;
+    7          u16 Rx2_Timer  = 0;
+    8          u16 Rx3_Timer  = 0;
+    9          u16 Rx4_Timer  = 0;
+   10          
+   11          
+   12          u8  TX1_Cnt;    //发送计数
+   13          u8  RX1_Cnt;    //接收计数
+   14          bit B_TX1_Busy; //发送忙标志
+   15          
+   16          u8  TX2_Cnt;    //发送计数
+   17          u8  RX2_Cnt;    //接收计数
+   18          bit B_TX2_Busy; //发送忙标志
+   19          
+   20          u8  TX3_Cnt;
+   21          u8  RX3_Cnt;
+   22          bit B_TX3_Busy;
+   23          
+   24          u8  TX4_Cnt;
+   25          u8  RX4_Cnt;
+   26          bit B_TX4_Busy;
+   27          
+   28          
+   29          u8  RX1_Buffer[MAX_LENGTH]; //接收缓冲
+   30          u8  RX2_Buffer[MAX_LENGTH]; //接收缓冲
+   31          u8  RX3_Buffer[MAX_LENGTH]; //接收缓冲
+   32          u8  RX4_Buffer[MAX_LENGTH]; //接收缓冲
+   33          
+   34          
+   35          void UART1_config()
+   36          {
+   37   1          /*********** 波特率使用定时器1 *****************/
+   38   1          {
+   39   2              TR1 = 0;
+   40   2              AUXR &= ~0x01;      //S1 BRT Use Timer1;
+   41   2              AUXR |=  (1<<6);    //Timer1 set as 1T mode
+   42   2              TMOD &= ~(1<<6);    //Timer1 set As Timer
+   43   2              TMOD &= ~0x30;      //Timer1_16bitAutoReload;
+   44   2              TH1 = (u8)((65536UL - (MAIN_Fosc / 4) / Baudrate) / 256);
+   45   2              TL1 = (u8)((65536UL - (MAIN_Fosc / 4) / Baudrate) % 256);
+   46   2              ET1 = 0;    //禁止中断
+   47   2              INTCLKO &= ~0x02;  //不输出时钟
+   48   2              TR1  = 1;
+   49   2          }
+   50   1      
+   51   1          /*************************************************/
+   52   1          //UART1模式, 0x00: 同步移位输出, 0x40: 8位数据,可变波特率, 
+   53   1          //           0x80: 9位数据,固定波特率, 0xc0: 9位数据,可变波特率 
+   54   1      
+   55   1          SCON = (SCON & 0x3f) | 0x40; 
+   56   1      
+   57   1          PS  = 0;    //中断高优先级
+   58   1          PSH = 0;
+C251 COMPILER V5.60.0,  uart                                                               07/10/23  09:26:56  PAGE 2   
+
+   59   1          //PS  = 1;    //高优先级中断
+   60   1          ES  = 1;    //允许中断
+   61   1          REN = 1;    //允许接收
+   62   1          
+   63   1          //UART1 switch to, 0x00: P3.0 P3.1, 0x40: P3.6 P3.7, 
+   64   1          //                 0x80: P1.6 P1.7, 0xC0: P4.3 P4.4
+   65   1          P_SW1 &= 0x3f;
+   66   1          P_SW1 |= 0x00;  
+   67   1          
+   68   1          B_TX1_Busy = 0;
+   69   1          TX1_Cnt = 0;
+   70   1          RX1_Cnt = 0;
+   71   1      }
+   72          
+   73          
+   74          void UART2_config()
+   75          {
+   76   1          
+   77   1          T2R   = 0;
+   78   1          T2x12 = 1;
+   79   1          AUXR &= ~(1<<3);
+   80   1          T2H = (u8)((65536UL - (MAIN_Fosc / 4) / Baudrate)/ 256);
+   81   1          T2L = (u8)((65536UL - (MAIN_Fosc / 4) / Baudrate)% 256);
+   82   1          ET2 = 0;    //禁止中断
+   83   1          T2R = 1;
+   84   1      
+   85   1          S2CON = (S2CON & 0x3f) | 0x40;
+   86   1          
+   87   1          PS2  = 1;    //中断高优先级
+   88   1          PS2H = 0;
+   89   1          
+   90   1          ES2   = 1;
+   91   1          S2REN = 1;
+   92   1          P_SW2 &= ~0x01; 
+   93   1      
+   94   1          B_TX2_Busy = 0;
+   95   1          TX2_Cnt = 0;
+   96   1          RX2_Cnt = 0;
+   97   1              
+   98   1      }
+   99          
+  100          
+  101          void UART3_config()
+  102          {
+  103   1          T3R = 0;
+  104   1          S3CON = 0x40;
+  105   1          T3H = (u8)((65536UL - (MAIN_Fosc / 4) / Baudrate3)/ 256);
+  106   1          T3L = (u8)((65536UL - (MAIN_Fosc / 4) / Baudrate3)% 256);
+  107   1          //ET3 = 0;    //禁止中断
+  108   1          T4T3M = 0x0a;
+  109   1          
+  110   1          // 中断优先级
+  111   1          PS3H = 0;
+  112   1          PS3 = 1;
+  113   1      
+  114   1          ES3 = 1;
+  115   1          S3REN = 1;
+  116   1          P_SW2 &= ~0x02; 
+  117   1      
+  118   1          B_TX3_Busy = 0;
+  119   1          TX3_Cnt = 0;
+  120   1          RX3_Cnt = 0;
+  121   1      
+  122   1              
+  123   1      }
+  124          
+C251 COMPILER V5.60.0,  uart                                                               07/10/23  09:26:56  PAGE 3   
+
+  125          void UART4_config()
+  126          {
+  127   1          T4R = 0;
+  128   1          S4CON = 0x40;   // 定时器4为波特率发生器
+  129   1          T4H = (u8)((65536UL - (MAIN_Fosc / 4) / Baudrate3)/ 256);
+  130   1          T4L = (u8)((65536UL - (MAIN_Fosc / 4) / Baudrate3)% 256);
+  131   1          //ET4 = 0;    //禁止中断
+  132   1          T4T3M |= (0x0a<<4);
+  133   1      
+  134   1          // 中断优先级
+  135   1          PS4H = 1;
+  136   1          PS4 = 1;    
+  137   1          
+  138   1          ES4 = 1;    // 串口4中断允许
+  139   1          S4REN = 1;  // 允许串口接收数据
+  140   1          
+  141   1          P_SW2 &= ~0x04;   // S4_S == 0; 引脚：P0.2, P0.3 
+  142   1      
+  143   1          B_TX4_Busy = 0;
+  144   1          TX4_Cnt = 0;
+  145   1          RX4_Cnt = 0;
+  146   1              
+  147   1      }
+  148          
+  149          void UART1_int (void) interrupt 4
+  150          {
+  151   1          if(RI)
+  152   1          {
+  153   2              RI = 0;
+  154   2              Rx1_Timer = 0;
+  155   2              RX1_Buffer[RX1_Cnt] = SBUF;
+  156   2              
+  157   2              if(++RX1_Cnt >= MAX_LENGTH)   
+  158   2              {
+  159   3                  RX1_Cnt = 0;
+  160   3              }
+  161   2          }
+  162   1      
+  163   1          if(TI)
+  164   1          {
+  165   2              TI = 0;
+  166   2              B_TX1_Busy = 0;
+  167   2          }
+  168   1      }
+  169          
+  170          
+  171          
+  172          void UART2_int (void) interrupt 8
+  173          {
+  174   1          if(S2RI)
+  175   1          {
+  176   2              S2RI = 0;
+  177   2              RX2_Buffer[RX2_Cnt] = S2BUF;
+  178   2              Rx2_Timer = 0;
+  179   2              
+  180   2              if(++RX2_Cnt >= MAX_LENGTH)   
+  181   2              {
+  182   3                  RX2_Cnt = 0;
+  183   3              }
+  184   2          }
+  185   1      
+  186   1          if(S2TI)
+  187   1          {
+  188   2              S2TI = 0;
+  189   2              B_TX2_Busy = 0;
+  190   2          }
+C251 COMPILER V5.60.0,  uart                                                               07/10/23  09:26:56  PAGE 4   
+
+  191   1      }
+  192          
+  193          
+  194          void UART3_int (void) interrupt 17
+  195          {
+  196   1          if(S3RI)
+  197   1          {
+  198   2              S3RI = 0;
+  199   2              Rx3_Timer = 0;
+  200   2              RX3_Buffer[RX3_Cnt] = S3BUF;
+  201   2              
+  202   2              if(++RX3_Cnt >= MAX_LENGTH)   
+  203   2              {
+  204   3                  RX3_Cnt = 0;
+  205   3              }
+  206   2          }
+  207   1      
+  208   1          if(S3TI)
+  209   1          {
+  210   2              S3TI = 0;
+  211   2              B_TX3_Busy = 0;
+  212   2          }
+  213   1      }
+  214          
+  215          void UART4_int (void) interrupt 18
+  216          {
+  217   1          if(S4RI)
+  218   1          {
+  219   2              S4RI = 0;
+  220   2              Rx4_Timer = 0;
+  221   2              RX4_Buffer[RX4_Cnt] = S4BUF;
+  222   2              
+  223   2              if(++RX4_Cnt >= MAX_LENGTH)   
+  224   2              {
+  225   3                  RX4_Cnt = 0;
+  226   3              }
+  227   2          }
+  228   1      
+  229   1          if(S4TI)
+  230   1          {
+  231   2              S4TI = 0;
+  232   2              B_TX4_Busy = 0;
+  233   2          }
+  234   1      }
+  235          
+  236          
+  237          void Uart1Send(u8 *buf, u8 len)
+  238          {
+  239   1          u8 i;
+  240   1          for (i=0;i<len;i++)     
+  241   1          {
+  242   2              SBUF = buf[i];
+  243   2              B_TX1_Busy = 1;
+  244   2              while(B_TX1_Busy);
+  245   2          }
+  246   1      }
+  247          
+  248          void Uart2Send(u8 *buf, u8 len)
+  249          {
+  250   1          u8 i;
+  251   1          for (i=0;i<len;i++)     
+  252   1          {
+  253   2              S2BUF = buf[i];
+  254   2              B_TX2_Busy = 1;
+  255   2              while(B_TX2_Busy);
+  256   2          }  
+C251 COMPILER V5.60.0,  uart                                                               07/10/23  09:26:56  PAGE 5   
+
+  257   1      }
+  258          
+  259          void Uart3Send(u8 *buf, u8 len)
+  260          {
+  261   1          u8 i;
+  262   1          RS485_EN1(0);
+  263   1          for (i=0;i<len;i++)     
+  264   1          {
+  265   2              S3BUF = buf[i];
+  266   2              B_TX3_Busy = 1;
+  267   2              while(B_TX3_Busy);
+  268   2          }
+  269   1          RS485_EN1(1);
+  270   1      }
+  271          
+  272          void Uart4Send(u8 *buf, u8 len)
+  273          {
+  274   1          u8 i;
+  275   1          RS485_EN2(0);
+  276   1          for (i=0;i<len;i++)     
+  277   1          {
+  278   2              S4BUF = buf[i];
+  279   2              B_TX4_Busy = 1;
+  280   2              while(B_TX4_Busy);
+  281   2          }
+  282   1          RS485_EN2(1);
+  283   1      }
+  284          
+  285          //重定向Printf
+  286          char putchar(char c )
+  287          {
+  288   1          SBUF = c;
+  289   1          while(!TI);
+  290   1          TI = 0;
+  291   1          return c;
+  292   1      }
+  293          
+  294          //char putchar(char c )
+  295          //{
+  296          //    RS485_EN2(0);
+  297          //    S4BUF = c;
+  298          //    while(!TI);
+  299          //    TI = 0;
+  300          //    return c;
+  301          //    RS485_EN2(1);
+  302          //}
+  303          
+  304          void ClearUart1Buf()
+  305          {
+  306   1          memset(RX1_Buffer,0,MAX_LENGTH);
+  307   1          RX1_Cnt = 0;
+  308   1      }
+  309          
+  310          
+  311          void ClearUart2Buf()
+  312          {
+  313   1          memset(RX2_Buffer,0,MAX_LENGTH);
+  314   1          RX2_Cnt = 0;
+  315   1      }
+  316          
+  317          void ClearUart3Buf()
+  318          {
+  319   1          memset(RX3_Buffer,0,MAX_LENGTH);
+  320   1          RX3_Cnt = 0;
+  321   1      }
+  322          
+C251 COMPILER V5.60.0,  uart                                                               07/10/23  09:26:56  PAGE 6   
+
+  323          void ClearUart4Buf()
+  324          {
+  325   1          memset(RX4_Buffer,0,MAX_LENGTH);
+  326   1          RX4_Cnt = 0;
+  327   1      }
+  328          
+  329          void Uart1Hnd()
+  330          {
+  331   1          if (Rx1_Timer > 20)
+  332   1          {
+  333   2              Rx1_Timer = 0;
+  334   2              //Uart1Send(RX1_Buffer,RX1_Cnt);
+  335   2              //HndModBusRecv(RS485,RX1_Buffer,RX1_Cnt);
+  336   2              ClearUart1Buf();
+  337   2          }
+  338   1      }
+  339          
+  340          
+  341          void Uart2Hnd()
+  342          {
+  343   1          if (Rx2_Timer > 20)
+  344   1          {
+  345   2              Rx2_Timer = 0;
+  346   2      
+  347   2              DumpCmd(RX2_Buffer, RX2_Cnt);
+  348   2              //printf("LCD_OK\r\n");
+  349   2              memcpy(RecvBuf1,RX2_Buffer, RX2_Cnt);
+  350   2              RecLength1 = RX2_Cnt;
+  351   2              ClearUart2Buf();
+  352   2              
+  353   2              HndLcdData();
+  354   2          }
+  355   1      }
+  356          
+  357          
+  358          
+  359          // 流量计
+  360          void Uart3Hnd()
+  361          {
+  362   1          if (Rx3_Timer > 20)
+  363   1          {
+  364   2              Rx3_Timer = 0;
+  365   2              //Error();
+  366   2              FlowMeterAck((BYTE *)RX3_Buffer,(BYTE)RX3_Cnt);
+  367   2              
+  368   2              ClearUart3Buf();
+  369   2          }
+  370   1      }
+  371          
+  372          
+  373          void Uart4Hnd()
+  374          {
+  375   1          if (Rx4_Timer > 20)
+  376   1          {
+  377   2              Rx4_Timer = 0;
+  378   2      
+  379   2              HndModBusRecv(RS485, RX4_Buffer,RX4_Cnt);
+  380   2              
+  381   2              ClearUart4Buf();
+  382   2          }
+  383   1      }
+  384          
+  385          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+C251 COMPILER V5.60.0,  uart                                                               07/10/23  09:26:56  PAGE 7   
+
+  code size            =      1125     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =       400     ------
+  xdata-const size     =    ------     ------
+  edata size           =       441     ------
+  bit size             =         4     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =        24     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

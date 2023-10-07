@@ -1,0 +1,446 @@
+C251 COMPILER V5.57.0,  cmd                                                                19/11/22  15:28:04  PAGE 1   
+
+
+C251 COMPILER V5.57.0, COMPILATION OF MODULE cmd
+OBJECT MODULE PLACED IN .\obj\cmd.obj
+COMPILER INVOKED BY: D:\KEIL\C251\BIN\C251.EXE MwPro\cmd.c XSMALL INTR2 OPTIMIZE(0,SPEED) BROWSE INCDIR(.\Ads1110;.\Flas
+                    -h;.\mcp4725;.\IIC;.\MwPro;.\Uart;.\Lcd;.\ModBus;.\Temperaturn) PRINT(.\obj\cmd.lst) TABS(2) OBJECT(.\obj\cmd.obj) 
+
+stmt  level    source
+
+    1          #include "main.h"
+*** ERROR C25 IN LINE 194 OF MwPro\Cmd.h: syntax error near '*'
+*** ERROR C25 IN LINE 195 OF MwPro\Cmd.h: syntax error near '*'
+*** ERROR C25 IN LINE 196 OF MwPro\Cmd.h: syntax error near '*'
+    2          #include "uart.h"
+    3          #include "MwPro.h"
+    4          #include "Cmd.h"
+    5          #include "i2c.h"
+    6          #include "mcp4725.h"
+    7          #include "ads1110.h"
+    8          
+    9          
+   10          extern const BYTE VERSION[];
+   11          extern alt_u8 g_Output[];
+   12          extern DWORD Cps[];
+   13          
+   14          
+   15          WORD g_CommIdleTime = 0;
+   16          
+   17          UART_DATA xdata g_UartData[1];
+*** WARNING C34 IN LINE 17 OF MwPro\cmd.c: 'g_UartData': missing declaration specifiers
+*** ERROR C42 IN LINE 17 OF MwPro\cmd.c: 'g_UartData': not in formal parameter list
+*** WARNING C194 IN LINE 17 OF MwPro\cmd.c: obsolete declaration: use '<type> xdata g_UartData'
+   18          
+   19          
+   20          
+   21          // 51单片机是大端的，通过结构体发送的数据要转换为小端
+   22          DWORD DwordToSmall(DWORD dat)
+   23          {
+*** ERROR C42 IN LINE 23 OF MwPro\cmd.c: 'DwordToSmall': not in formal parameter list
+*** ERROR C25 IN LINE 23 OF MwPro\cmd.c: syntax error near '{'
+   24            BYTE buf[4];
+   25              BYTE t;
+   26              DWORD ret;
+   27              
+   28              memcpy(buf, &dat, 4);
+   29            t = buf[3];
+   30            buf[3] = buf[0];
+   31            buf[0] = t;
+   32            t = buf[2];
+   33            buf[2] = buf[1];
+   34            buf[1] = t;
+   35          
+   36              memcpy(&ret, buf, 4);
+   37              return ret;
+   38          }
+   39          
+   40          
+   41          WORD WordToSmall(WORD dat)
+   42          {
+   43            BYTE buf[2];
+   44              BYTE t;
+   45              WORD ret;
+   46              
+   47              memcpy(buf, &dat, 2);
+   48            t = buf[1];
+   49            buf[0] = buf[1];
+   50            buf[1] = t;
+C251 COMPILER V5.57.0,  cmd                                                                19/11/22  15:28:04  PAGE 2   
+
+   51            
+   52              memcpy(&ret, buf, 2);
+   53              return ret;
+   54          }
+   55          
+   56          
+   57          
+   58          float FloatToSmall(float dat)
+   59          {
+   60            BYTE buf[4];
+   61              BYTE t;
+   62              float ret;
+   63              
+   64              memcpy(buf, &dat, 4);
+   65            t = buf[3];
+   66            buf[3] = buf[0];
+   67            buf[0] = t;
+   68            t = buf[2];
+   69            buf[2] = buf[1];
+   70            buf[1] = t;
+   71          
+   72              memcpy(&ret, buf, 4);
+   73              return ret;
+   74          }
+   75          
+   76          
+   77          
+   78          void ClearRecvData(UART_DATA *pUartData)
+*** ERROR C42 IN LINE 78 OF MwPro\cmd.c: 'pUartData': not in formal parameter list
+   79          {
+   80              memset(pUartData->RecvBuff, 0, MAX_LENGTH);
+   81              pUartData->RecvLength = 0;
+   82              pUartData->Timer = 0;
+   83          }
+   84          
+   85          
+   86          bool ValidFrame(UART_DATA *pUartData)
+*** ERROR C42 IN LINE 86 OF MwPro\cmd.c: 'pUartData': not in formal parameter list
+   87          {
+   88              BYTE rs;
+   89              alt_u8 lcrc;
+   90              alt_u8 tmp[3] = {0};
+   91              
+   92              FRAME_HEAD FrmHead;
+   93              memcpy(&FrmHead, pUartData->RecvBuff, sizeof(FRAME_HEAD));
+   94          
+   95              if (FrmHead.Head != HEAD)
+   96              {
+   97                  return false;
+   98              }
+   99          
+  100              if (pUartData->RecvBuff[pUartData->RecvLength-1] != TAIL)
+  101              {
+  102                  return false;
+  103              }
+  104          
+  105              if (FrmHead.Len != pUartData->RecvLength)
+  106              {
+  107                  return false;
+  108              }
+  109          
+  110              lcrc = CheckSum(&pUartData->RecvBuff[1],(BYTE)(pUartData->RecvLength-4));
+  111              rs = BcdToHex(pUartData->RecvBuff[pUartData->RecvLength-3], 
+  112                             pUartData->RecvBuff[pUartData->RecvLength-2]);
+  113              if (lcrc != rs)
+  114              {
+C251 COMPILER V5.57.0,  cmd                                                                19/11/22  15:28:04  PAGE 3   
+
+  115                  //Error();
+  116                  return FALSE;
+  117              }
+  118          
+  119              return true;
+  120          }
+  121          
+  122          void MakeFrame(UART_DATA *pUartData, alt_u8 Addr, alt_u8 Cmd, alt_u8 *dat, alt_u8 length)
+*** ERROR C42 IN LINE 122 OF MwPro\cmd.c: 'pUartData': not in formal parameter list
+*** ERROR C25 IN LINE 122 OF MwPro\cmd.c: syntax error near 'BYTE'
+*** ERROR C42 IN LINE 122 OF MwPro\cmd.c: 'dat': not in formal parameter list
+*** ERROR C25 IN LINE 122 OF MwPro\cmd.c: syntax error near 'BYTE'
+  123          {
+  124              alt_u8 lcrc;
+  125                  
+  126              FRAME_HEAD FrmHead;
+  127              FrmHead.Head = HEAD;
+  128              FrmHead.Len  = length+8;
+  129              FrmHead.Type = 0;
+  130              FrmHead.Addr = Addr;
+  131              FrmHead.Cmd  = Cmd;
+  132          
+  133              memcpy(pUartData->SendBuff, &FrmHead, sizeof(FRAME_HEAD));
+  134              if (length > 0)
+  135              {
+  136                  memcpy(&pUartData->SendBuff[DAT], dat, length);
+  137              }
+  138          
+  139              lcrc = CheckSum(&pUartData->SendBuff[1], (BYTE)(FrmHead.Len-4));//计算校验和
+  140          
+  141              //将校验和转换为两个字节的ASCII
+  142              sprintf((char *)&pUartData->SendBuff[FrmHead.Len-3],"%02X",lcrc);
+  143              pUartData->SendBuff[FrmHead.Len-1] = TAIL;   
+  144              pUartData->SendLength = FrmHead.Len;
+  145          }
+  146          
+  147          
+  148          void SendPcCmd(alt_u8 Addr, alt_u8 Cmd, alt_u8 *dat, alt_u8 length)
+*** ERROR C42 IN LINE 148 OF MwPro\cmd.c: 'dat': not in formal parameter list
+*** ERROR C25 IN LINE 148 OF MwPro\cmd.c: syntax error near 'BYTE'
+  149          {
+  150              MakeFrame(&g_UartData[0], Addr, Cmd, dat, length);
+  151              //DebugMsg("PC<:");
+  152              //PrintData(g_UartData[0].SendBuff,g_UartData[0].SendLength);
+  153              Rs485Send(g_UartData[0].SendBuff,(alt_u8)g_UartData[0].SendLength);
+  154          
+  155              g_CommIdleTime = 0;
+  156          }
+  157          
+  158          
+  159          bool HndPcFrame()
+  160          {
+  161              bool ret = false;
+  162              if (ValidFrame(&g_UartData[0]))
+  163              {
+  164                  ret = HndPcCmd();
+  165              }
+  166              ClearRecvData(&g_UartData[0]);
+  167              return ret;
+  168          }
+  169          
+  170          
+  171          bool Out4_20ma(BYTE index, BYTE val)
+  172          {
+  173              WORD v = val*100;
+  174          
+C251 COMPILER V5.57.0,  cmd                                                                19/11/22  15:28:04  PAGE 4   
+
+  175              switch(index)
+  176              { 
+  177                  //case 1:  MCP4725_OutVol(MCP4725_AV_ADDR, v); break;
+  178                  //case 2:  MCP4725_OutVol(MCP4725_HV_ADDR, v); break; 
+  179                  //case 1:  MCP4725_OutVol(MCP4725_BL_ADDR, v); break;
+  180                  //case 2:  MCP4725_OutVol(MCP4725_HV_ADDR, v); break; 
+  181              }
+  182          
+  183              SendPcCmd(0, CMD_OUT_4_20MA, NULL, 0);
+  184              return true;
+  185          }
+  186          
+  187          
+  188          bool Read4_20ma()
+  189          {
+  190              BYTE ret = 0;
+  191              int Voltage = 0;
+  192              //GetAds1110(I2C_4_20MA_IN, ADS110_4_20mA);
+  193          
+  194              ret = (BYTE)(Voltage/100);
+  195              SendPcCmd(0,CMD_GET_4_20MA, &ret, 1);
+  196              return true;
+  197          }
+  198          
+  199          
+  200          bool ReadBatVol()
+  201          {
+  202              BAT_INFO bi;
+  203              int Voltage = 0;
+  204              //GetAds1110(I2C_BAT_VOL, ADS110_BAT_VOL);
+  205          
+  206              bi.Vol = (WORD)Voltage;
+  207              //bi.Charging = (BAT_CHARGE() != 0);
+  208              SendPcCmd(0,CMD_BATTERY, (BYTE *)&bi, 3);
+  209              return true;
+  210          }
+  211          
+  212          
+  213          bool HndPcCmd()
+  214          {
+  215              bool ret = false;
+  216              FRAME_HEAD FrmHead;
+  217              memcpy(&FrmHead, g_UartData[0].RecvBuff, sizeof(FRAME_HEAD));
+  218              switch(FrmHead.Cmd)
+  219              {
+  220                  // Dev cmd
+  221                  case CMD_SOUND:    ret = SoundCtl(g_UartData[0].RecvBuff[DAT]); break;
+  222                  case CMD_LED:      ret = LedCtl(&g_UartData[0].RecvBuff[DAT]);    break;
+  223                  case CMD_OUT_4_20MA:  ret = Out4_20ma(g_UartData[0].RecvBuff[DAT], g_UartData[0].RecvBuff[DAT+1])
+             -;    break;
+  224                  case CMD_GET_4_20MA:  ret = Read4_20ma();        break;
+  225                  case CMD_VERSION:     ret = DevVer(FrmHead.Addr);  break;
+  226                  case CMD_BATTERY:     ret = ReadBatVol();        break;
+  227          
+  228                  // Sensor cmd
+  229                  case CMD_DEV_CON:        ret = ConnectSensor(FrmHead.Addr);    break;
+  230                  case CMD_READ_DOSE:      ret = ReadDoseRate(FrmHead.Addr);     break;
+  231                  case CMD_READ_ALARM_PARA:     ret = ReadAlarmParam(FrmHead.Addr);    break;
+  232                  case CMD_WRITE_ALARM_PARA_B:  ret = WriteAlarmParam(FrmHead.Addr);    break;
+  233                  case CMD_READ_DETER_PARA_R:   ret = ReadSensorParam(FrmHead.Addr);   break;
+  234                  case CMD_WRITE_DETER_PARA_W:  ret = WriteSensorParam(FrmHead.Addr);   break;
+  235          
+  236                  //default: ret = FrameRevert(&FrmHead);   break;
+  237              }
+  238          
+  239              return ret;
+C251 COMPILER V5.57.0,  cmd                                                                19/11/22  15:28:04  PAGE 5   
+
+  240          }
+  241          
+  242          
+  243          
+  244          
+  245          bool ConnectSensor(alt_u8 Addr)
+  246          {
+  247              bool ret = false;
+  248              SendPcCmd(Addr, CMD_DEV_CON, NULL, 0);
+  249              ret = true;
+  250              return ret;    
+  251          }
+  252          
+  253          
+  254          BYTE_BIT GetAlarm(BYTE Addr)
+  255          {
+  256              BYTE_BIT ret;
+  257              ret.ByteWhole = 0;
+  258              
+  259              if (Cps[Addr-1] > SysParam.AlmParam[Addr-1].INVALID_ALRAM_2)
+  260              {
+  261                  ret.BIT.bit3 = 1;
+  262              }
+  263              else if (Cps[Addr-1] > SysParam.AlmParam[Addr-1].DOSE_RATE_ALARM_2)
+  264              {
+  265                  ret.BIT.bit6 = 1;
+  266              }
+  267              else if (Cps[Addr-1] > SysParam.AlmParam[Addr-1].DOSE_RATE_ALARM_1)
+  268              {
+  269                  ret.BIT.bit7 = 1;
+  270              }
+  271              
+  272              return ret;
+  273          }
+  274          
+  275          bool ReadDoseRate(alt_u8 Addr)
+  276          {
+  277              HOST_COUNT_PULSE HostDose;
+  278              
+  279              HostDose.DOSE_RATE = 0;
+  280              HostDose.ACC_DOSE_RATE  = 0;
+  281              HostDose.ALARM_STATUS = GetAlarm(Addr);
+  282              HostDose.PULSE1 = DwordToSmall(Cps[Addr-1]);
+  283              HostDose.PULSE2 = 0;
+  284              HostDose.PULSE3 = 0;
+  285          
+  286              SendPcCmd(Addr, CMD_READ_DOSE, (alt_u8 *)&HostDose, sizeof(HOST_COUNT_PULSE));
+  287              return true;
+  288          }
+  289          
+  290          bool ReadAlarmParam(alt_u8 Addr)
+  291          {
+  292              HOST_ALRAM_PARA HostAlarm;
+  293              
+  294              memset(&HostAlarm, 0, sizeof(HOST_ALRAM_PARA));
+  295              
+  296              HostAlarm.DOSE_RATE_ALARM_1 = FloatToSmall(SysParam.AlmParam[Addr-1].DOSE_RATE_ALARM_1);
+  297              HostAlarm.DOSE_RATE_ALARM_2 = FloatToSmall(SysParam.AlmParam[Addr-1].DOSE_RATE_ALARM_2);
+  298              HostAlarm.CUM_DOSE_RATE_ALARM_1 = FloatToSmall(SysParam.AlmParam[Addr-1].CUM_DOSE_RATE_ALARM_1);
+  299              HostAlarm.CUM_DOSE_RATE_ALARM_2 = FloatToSmall(SysParam.AlmParam[Addr-1].CUM_DOSE_RATE_ALARM_2);
+  300              HostAlarm.INVALID_ALRAM_1 = FloatToSmall(SysParam.AlmParam[Addr-1].INVALID_ALRAM_1);
+  301              HostAlarm.INVALID_ALRAM_2 = FloatToSmall(SysParam.AlmParam[Addr-1].INVALID_ALRAM_2);
+  302              
+  303              SendPcCmd(Addr, CMD_READ_ALARM_PARA, (alt_u8 *)&HostAlarm, sizeof(HOST_ALRAM_PARA));
+  304          
+  305              return true;    
+C251 COMPILER V5.57.0,  cmd                                                                19/11/22  15:28:04  PAGE 6   
+
+  306          }
+  307          
+  308          
+  309          bool WriteAlarmParam(alt_u8 Addr)
+  310          {
+  311              HOST_ALRAM_PARA HostAlarm;
+  312          
+  313              memcpy(&HostAlarm, &g_UartData[0].RecvBuff[DAT], sizeof(HOST_ALRAM_PARA));
+  314              
+  315              SysParam.AlmParam[Addr-1].DOSE_RATE_ALARM_1 = FloatToSmall(  HostAlarm.DOSE_RATE_ALARM_1);
+  316              SysParam.AlmParam[Addr-1].DOSE_RATE_ALARM_2 = FloatToSmall(HostAlarm.DOSE_RATE_ALARM_2);
+  317              SysParam.AlmParam[Addr-1].CUM_DOSE_RATE_ALARM_1 = FloatToSmall(HostAlarm.CUM_DOSE_RATE_ALARM_1);
+  318              SysParam.AlmParam[Addr-1].CUM_DOSE_RATE_ALARM_2 = FloatToSmall(HostAlarm.CUM_DOSE_RATE_ALARM_2);
+  319                  
+  320          
+  321              SendPcCmd(Addr, CMD_WRITE_ALARM_PARA_B, NULL, 0);
+  322          
+  323              WriteParam();
+  324          
+  325              return true;
+  326          }
+  327          
+  328          
+  329          bool ReadSensorParam(alt_u8 Addr)
+  330          {
+  331              HOST_SENSOR_PARAM HostParam;
+  332              
+  333              memset(&HostParam, 0, sizeof(HOST_SENSOR_PARAM));
+  334              
+  335              HostParam.LOW_REVISE_COE_A = FloatToSmall(SysParam.SenParam[Addr-1].LOW_REVISE_COE_A);
+  336              HostParam.LOW_REVISE_COE_B = FloatToSmall(SysParam.SenParam[Addr-1].LOW_REVISE_COE_B);
+  337              
+  338              HostParam.DET_THR_1 = DwordToSmall(SysParam.SenParam[Addr-1].DET_THR_1);
+  339              HostParam.DET_THR_2 = DwordToSmall(SysParam.SenParam[Addr-1].DET_THR_2);
+  340              HostParam.DET_TIME  = DwordToSmall(SysParam.SenParam[Addr-1].DET_TIME);
+  341              HostParam.HV_THR    = DwordToSmall(SysParam.SenParam[Addr-1].HV_THR);
+  342              
+  343              SendPcCmd(Addr, CMD_READ_DETER_PARA_R, (alt_u8 *)&HostParam, sizeof(HOST_SENSOR_PARAM));
+  344              
+  345              return true;    
+  346          }
+  347          
+  348          
+  349          bool WriteSensorParam(alt_u8 Addr)
+  350          {
+  351              HOST_SENSOR_PARAM HostParam;
+  352              memcpy(&HostParam, &g_UartData[0].RecvBuff[DAT], sizeof(HOST_SENSOR_PARAM));
+  353          
+  354              // 现在设备中只用了阈值1
+  355              SysParam.SenParam[Addr-1].DET_THR_1 = DwordToSmall(HostParam.DET_THR_1);
+  356              MCP4725_OutVol(ThresAddr[Addr-1], (WORD)SysParam.SenParam[Addr-1].DET_THR_1);
+  357              
+  358              SendPcCmd(Addr, CMD_WRITE_DETER_PARA_W, NULL, 0);
+  359              WriteParam();
+  360              
+  361              return true;   
+  362          }
+  363          
+  364          
+  365          
+  366          bool SoundCtl(alt_u8 Ctl)
+  367          {
+  368              if (Ctl == 0xAA)
+  369              {
+  370                  //LEDM_ON();      // 远程报警灯
+  371                  g_Output[ALARM_SOUND] = 2;
+C251 COMPILER V5.57.0,  cmd                                                                19/11/22  15:28:04  PAGE 7   
+
+  372              }
+  373              else
+  374              {
+  375                  //LEDM_OFF();    
+  376                  g_Output[ALARM_SOUND] = 0;
+  377              }
+  378              SendPcCmd(0, CMD_SOUND, NULL, 0);
+  379              return true;
+  380          }
+  381          
+  382          bool LedCtl(alt_u8 *led)
+*** ERROR C42 IN LINE 382 OF MwPro\cmd.c: 'led': not in formal parameter list
+  383          {
+  384              memcpy(g_Output, led, OUT_IO_COUNT-1);  // 报警音不在这里控制
+  385          
+  386              //SendPcCmd(0, CMD_LED, NULL, 0);
+  387              return true;
+  388          }
+  389          
+  390          
+  391          bool DevVer(alt_u8 Addr)
+  392          {
+  393              BYTE buf[7] = {0};
+  394          
+  395              // 
+  396              memcpy(buf, VERSION, 6);
+  397              
+  398              SendPcCmd(Addr, CMD_VERSION, buf, 6);
+  399              return true;
+  400          }
+  401          
+  402          
+  403          
+*** ERROR C7 IN LINE 403 OF MwPro\cmd.c: compilation aborted
+
+C251 COMPILATION COMPLETE.  2 WARNING(S),  16 ERROR(S)

@@ -1,0 +1,152 @@
+C251 COMPILER V5.60.0,  ModBusHost                                                         07/10/23  09:26:57  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE ModBusHost
+OBJECT MODULE PLACED IN .\obj\ModBusHost.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE ModBus\ModBusHost.c XSMALL OPTIMIZE(0,SPEED) BROWSE INCDIR(.\Ads1110;.
+                    -\Flash;.\mcp4725;.\IIC;.\MwPro;.\Uart;.\Lcd;.\ModBus;.\Temperaturn) PRINT(.\obj\ModBusHost.lst) OBJECT(.\obj\ModBusHost.
+                    -obj) 
+
+stmt  level    source
+
+    1          #include <stdio.h>
+    2          #include <stdlib.h>
+    3          #include <string.h>
+    4          
+    5          
+    6          #include "main.h"
+    7          #include "Lcd.h"
+    8          #include "LcdApp.h"
+    9          #include "ModBus.h"
+   10          #include "ModBusHost.h"
+   11          #include "uart.h"
+   12          
+   13          
+   14          /*
+   15          ModBus 帧格式
+   16          1. 发送帧
+   17          地址           命令     寄存器    寄存器数量    数据                                             CRC   
+   18          0A(固定值)     Cmd(1)   RX(2)     n(2)          无数据表示读取、有数据表示写对应的寄存器 
+   19          
+   20          数据定义:  长度 + 数据
+   21                     n*2    dat(n*2)
+   22          
+   23          2. 应答帧 -- 返回数据
+   24          地址           命令   数据长度    数据      CRC   
+   25          0A(固定值)     Cmd    n(1)        dat(n)
+   26          
+   27          3. 应答帧 -- 返回状态
+   28          地址           命令   寄存器   寄存器数量     CRC   
+   29          0A(固定值)     Cmd    Rx(2)    n(2)                       
+   30          */
+   31          
+   32          HOST_SEND_FRAME xdata  HostSendFrame;   // 发送帧
+   33          DEVICE_READ_ACK xdata  ReadAckFrame;    // 读接收帧
+   34          
+   35          DEVICE_WRITE_ACK xdata WriteAckFrame;  // 写接收帧
+   36          
+   37          
+   38          BYTE MbId[2] = {0};
+   39          
+   40          
+   41          WORD HostBufIndex = 0;
+   42          
+   43          
+   44          WORD PopReg()
+   45          {
+   46   1          WORD reg = 0;
+   47   1          memcpy(&reg, &ReadAckFrame.Data[HostBufIndex], 2);
+   48   1          HostBufIndex +=2;
+   49   1          reg =  RegSw(reg);
+   50   1          return reg;
+   51   1      }
+   52          
+   53          
+   54          BYTE HostSendCmd(BYTE Mode, BYTE Addr, BYTE Cmd, WORD Reg, WORD Count, BYTE * Data)
+   55          {
+   56   1          WORD i = 0;
+   57   1          WORD crc, SendLen;
+C251 COMPILER V5.60.0,  ModBusHost                                                         07/10/23  09:26:57  PAGE 2   
+
+   58   1          //Error();
+   59   1          memset(&HostSendFrame, 0, sizeof(HOST_SEND_FRAME));
+   60   1          
+   61   1          HostSendFrame.Address = Addr; //Param.DevAddr;
+   62   1          HostSendFrame.FunctionCode = Cmd;
+   63   1          HostSendFrame.RegAddr = RegSw(Reg);
+   64   1          HostSendFrame.RegCount =  RegSw(Count);
+   65   1      
+   66   1          SendLen = 6;
+   67   1      
+   68   1          if (((Count*2) > 0) && (Data != NULL))
+   69   1          {
+   70   2              HostSendFrame.Data[0] = Count*2;  // 数据长度
+   71   2              SendLen ++;
+   72   2              i++;
+   73   2              memcpy(&HostSendFrame.Data[1], Data, Count*2);
+   74   2              SendLen += Count*2;
+   75   2              i+=2;
+   76   2          }
+   77   1          
+   78   1          // 计算CRC , 并添加到数据后面
+   79   1          crc = CRC16Calc((BYTE *)&HostSendFrame, SendLen);
+   80   1          HostSendFrame.Data[i]  = (BYTE)(crc);
+   81   1          HostSendFrame.Data[i+1] = (BYTE)(crc>>8);
+   82   1          
+   83   1          SendLen += 2; 
+   84   1          SendBuffer(Mode, (BYTE *)&HostSendFrame, SendLen);
+   85   1      
+   86   1          return true;
+   87   1      }
+   88          
+   89          
+   90          
+   91          // 由于原来是安装MODBUS_RTU写的，发送MODBUS_TCP时特殊处理一下
+   92          void SendTcpFrame(BYTE *Data, WORD Length)
+   93          {
+   94   1          BYTE Head[6] = {0};
+   95   1          WORD sLen = Length - 2;  // MODBUS_TCP 没有CRC
+   96   1          memcpy(Head,MbId, 2);
+   97   1          Head[5] = (BYTE)sLen;
+   98   1          
+   99   1          //UnusedVar(Data);
+  100   1          //Uart3Send(Head,6);
+  101   1          //Uart3Send(Data, (BYTE)sLen);
+  102   1      }
+*** WARNING C47 IN LINE 92 OF ModBus\ModBusHost.c: 'Data': unreferenced parameter
+  103          
+  104          void SendBuffer(BYTE Mode, BYTE * Data, WORD Length)
+  105          {
+  106   1          switch(Mode)
+  107   1          {
+  108   2              case RJ45  : SendTcpFrame(Data, Length);        break;
+  109   2              case RS485 : Uart3Send(Data, (BYTE)Length);     break;
+  110   2          }
+  111   1      }
+  112          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       475     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =       533     ------
+  xdata-const size     =    ------     ------
+C251 COMPILER V5.60.0,  ModBusHost                                                         07/10/23  09:26:57  PAGE 3   
+
+  edata size           =        40     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =        18     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

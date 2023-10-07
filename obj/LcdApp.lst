@@ -1,0 +1,510 @@
+C251 COMPILER V5.60.0,  LcdApp                                                             07/10/23  09:26:57  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE LcdApp
+OBJECT MODULE PLACED IN .\obj\LcdApp.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE Lcd\LcdApp.c XSMALL OPTIMIZE(0,SPEED) BROWSE INCDIR(.\Ads1110;.\Flash;
+                    -.\mcp4725;.\IIC;.\MwPro;.\Uart;.\Lcd;.\ModBus;.\Temperaturn) PRINT(.\obj\LcdApp.lst) OBJECT(.\obj\LcdApp.obj) 
+
+stmt  level    source
+
+    1          //#include "pch.h"
+    2          
+    3          #include "main.h"
+    4          #include "Lcd.h"
+    5          #include "LcdApp.h"
+    6          #include "Temper.h"
+    7          
+    8          
+    9          //#include "SerialPort.h"
+   10          //#include "SampDemo.h"
+   11          //#include "SampDemoDlg.h"
+   12          
+   13          #define Log //((CSampDemoDlg *)theApp.m_pMainWnd)->AddLog
+   14          
+   15          #define TEMP_BUF_LEN  128
+   16          BYTE xdata TempBuf[TEMP_BUF_LEN] = {0};
+   17          
+   18          SHOW_PARAM xdata ShowParam;
+   19          RUN_INFO xdata RunInfo;
+   20          DEV_INFO xdata DevInfo;
+   21          
+   22          bool NeedGetRet = false;
+   23          
+   24          char xdata ChannelStatus[CHANNLE_NUM][16] = {0};   // 状态文字
+   25          BYTE  ChannelAlarm[CHANNLE_NUM] = {1,1,1,1,1,1,1,1};   // 默认状态正常
+   26          BYTE  HisAlarm[CHANNLE_NUM] = {1,1,1,1,1,1,1,1};
+   27          
+   28          WORD xdata RemChStatus[CHANNLE_NUM] = {0,0,0,0,0,0,0,0};  //远程控制界面通道状态
+   29          
+   30          extern BYTE code VERSION;
+   31          
+   32          WORD code StatusPoint[CHANNLE_NUM] = 
+   33          {
+   34              0xA000,0xA100,0xA200,0xA300,0xA400,0xA500,0xA600,0xA700
+   35          };
+   36          
+   37          WORD code TxtColor[5] = 
+   38          {
+   39              //禁用    正常    流量低     流量高     异常
+   40              //白色    黄色     红色     红色      红色
+   41              0xFFFF,0xFFE0,0xF800,0xF800,0xF800
+   42          };
+   43          
+   44          char code ModeText[4][16]=
+   45          {   
+   46              "",
+   47              "定时取样",
+   48              "定量取样",
+   49              "手动取样"
+   50          };
+   51          
+   52          
+   53          
+   54          
+   55          
+   56          void ShowDevInfo()
+   57          {
+   58   1          BYTE i,Cnt = 0;;
+C251 COMPILER V5.60.0,  LcdApp                                                             07/10/23  09:26:57  PAGE 2   
+
+   59   1          for (i=0;i<8;i++)
+   60   1          {
+   61   2              if (SysParam.Enable & (1<<i))
+   62   2              {
+   63   3                  Cnt ++;
+   64   3              }
+   65   2          }
+   66   1          memset(&DevInfo, 0, sizeof(DEV_INFO));
+   67   1          sprintf(DevInfo.DevType,"MNNA-1/%d",Cnt);
+   68   1      
+   69   1          sprintf(DevInfo.SoftVer,"V%d.%d.%d", VERSION/100, VERSION%100/10, VERSION%10 );
+   70   1          LcdCmd(LCD_CMD_WRITE, REG_DEV_TYPE, (BYTE *)&DevInfo, 32);
+   71   1      }
+   72          
+   73          // 启动界面开始按钮
+   74          void StartButton()
+   75          {
+   76   1          WORD dat;
+   77   1          if (!CheckDataLen(1))
+   78   1          {
+   79   2              return;
+   80   2          }
+   81   1      
+   82   1          dat = PopWord();
+   83   1          if (dat == BUTTON_OK)
+   84   1          {
+   85   2              
+   86   2              StartSamp();
+   87   2              NeedGetRet = true;
+   88   2          }    
+   89   1      }
+   90          
+   91          
+   92          // 修改主界面的启停按钮 1：开始  0：停止
+   93          void SetStartBtn(BYTE s)
+   94          {
+   95   1          PageSwitch = 1;
+   96   1          TempBuf[0] = 0;
+   97   1          TempBuf[1] = s;
+   98   1          LcdCmd(LCD_CMD_WRITE, REG_DEV_CTL, TempBuf, 2);
+   99   1          
+  100   1      }
+  101          
+  102          // 登录密码
+  103          void VerifyPassWord()
+  104          {
+  105   1          WORD PassWord;
+  106   1          if (!CheckDataLen(1))
+  107   1          {
+  108   2              return;
+  109   2          }
+  110   1      
+  111   1          PassWord = PopWord();
+  112   1          if (PassWord == LOGIN_PASSWORD)
+  113   1          {
+  114   2              EnterPage(PAGE_SET);
+  115   2              PageSwitch = 2;
+  116   2              //Log(_T("登录成功\r\n"));
+  117   2          }    
+  118   1      }
+  119          
+  120          void ReturnStart()
+  121          {
+  122   1          WORD dat;
+  123   1          if (!CheckDataLen(1))
+  124   1          {
+C251 COMPILER V5.60.0,  LcdApp                                                             07/10/23  09:26:57  PAGE 3   
+
+  125   2              return;
+  126   2          }
+  127   1      
+  128   1          dat = PopWord();
+  129   1          if (dat == 0x31)    // 返回确认
+  130   1          {
+  131   2              //TemSendFlag = false;
+  132   2              NeedGetRet = false;
+  133   2              
+  134   2              StopSamp(false);
+  135   2              Delay(200);
+  136   2              // 要把变量重新写为0
+  137   2              memset(TempBuf,0,TEMP_BUF_LEN);
+  138   2              LcdCmd(LCD_CMD_WRITE, REG_RETRUN, TempBuf, 2);
+  139   2              Delay(200);
+  140   2              EnterPage(PAGE_START);
+  141   2              PageSwitch = 0;
+  142   2              Delay(200);
+  143   2              
+  144   2          }   
+  145   1          else if (dat == 0x0D0A)
+  146   1          {
+  147   2              if (RunStatus.Running)
+  148   2              {
+  149   3                  StopSamp(false);
+  150   3              }
+  151   2              else
+  152   2              {
+  153   3                  StartSamp();
+  154   3              }
+  155   2      
+  156   2              // 要把变量重新写为0
+  157   2              Delay(200);
+  158   2              memset(TempBuf,0,TEMP_BUF_LEN);
+  159   2              LcdCmd(LCD_CMD_WRITE, REG_RETRUN, TempBuf, 2);
+  160   2              
+  161   2          }
+  162   1           
+  163   1      }
+  164          
+  165          void GetRetCode()
+  166          {
+  167   1          BYTE len = 1;
+  168   1      
+  169   1          if (NeedGetRet)
+  170   1          {
+  171   2              LcdCmd(LCD_CMD_READ, REG_RETRUN, &len, 1);
+  172   2          }
+  173   1      }
+  174          
+  175          
+  176          void SampCtl()
+  177          {
+  178   1          WORD dat;
+  179   1          if (!CheckDataLen(1))
+  180   1          {
+  181   2              return;
+  182   2          }
+  183   1      
+  184   1          dat = PopWord();
+  185   1          if (dat == 0)
+  186   1          {
+  187   2              StartSamp();
+  188   2             
+  189   2          }  
+  190   1          else
+C251 COMPILER V5.60.0,  LcdApp                                                             07/10/23  09:26:57  PAGE 4   
+
+  191   1          {
+  192   2              StopSamp(false);
+  193   2              
+  194   2          }
+  195   1      
+  196   1          HideModule(MP_HINT_END);
+  197   1         
+  198   1      }
+  199          
+  200          
+  201          // 主界面取样模式提示
+  202          void ModeHint()
+  203          {
+  204   1          memset(TempBuf,0,TEMP_BUF_LEN);
+  205   1          switch (SysParam.SampMode)
+  206   1          {
+  207   2              case MODE_TIME: sprintf((char *)TempBuf, "定时取样:%d分钟" ,    SysParam.SampTime); break;
+  208   2              case MODE_VOL : sprintf((char *)TempBuf, "定量取样:%.1f立方米" , SysParam.SampVol);  break;
+  209   2              case MODE_MAN : sprintf((char *)TempBuf, "手动取样"); break;
+  210   2          }
+  211   1          
+  212   1          LcdCmd(LCD_CMD_WRITE, REG_MODEHINT, TempBuf, 32);
+  213   1          //Delay(200);
+  214   1          
+  215   1      }
+  216          
+  217          
+  218          // 调整状态文字的颜色
+  219          void StatusColor(bool force)
+  220          {
+  221   1          BYTE i;
+  222   1          for (i=0;i<CHANNLE_NUM;i++)
+  223   1          {
+  224   2              if ((ChannelAlarm[i] != HisAlarm[i]) || force)
+  225   2              {
+  226   3                  Delay(200);
+  227   3                  SetTextColor(StatusPoint[i], SwWord(TxtColor[ChannelAlarm[i]]));
+  228   3              }
+  229   2          }
+  230   1      }
+  231          
+  232          void SetRunTime(DWORD tm)
+  233          {
+  234   1          WORD h,m,s;
+  235   1          h = (WORD)(tm/3600);
+  236   1          m = (tm%3600)/60;
+  237   1          s = tm%60;
+  238   1          memset(RunInfo.RunTime,0,16);
+  239   1          sprintf((char *)RunInfo.RunTime, "%04d:%02d:%02d",h,m,s);
+  240   1          //WriteParam();
+  241   1      }
+  242          
+  243          void ShowFlow()
+  244          {
+  245   1          SetRunTime(RunStatus.RunTime);  // 运行时长
+  246   1          LcdCmd(LCD_CMD_WRITE, REG_CH_FLOW, (BYTE *)&RunInfo, sizeof(RUN_INFO));
+  247   1      }
+  248          
+  249          void ShowStatus()
+  250          {
+  251   1          BYTE i;
+  252   1          memset(ChannelStatus,0,sizeof(ChannelStatus));
+  253   1          for (i=0;i<CHANNLE_NUM;i++)
+  254   1          {
+  255   2              switch (ChannelAlarm[i])
+  256   2              {
+C251 COMPILER V5.60.0,  LcdApp                                                             07/10/23  09:26:57  PAGE 5   
+
+  257   3                  case ALM_CH_DISABLE:  sprintf(&ChannelStatus[i][0],"禁用");               break;
+  258   3                  case ALM_FLOW_NOR:    sprintf(&ChannelStatus[i][0],"正\xfd常\xfd");               break;
+  259   3                  case ALM_FLOW_LOW:    sprintf(&ChannelStatus[i][0],"流量偏小");             break;
+  260   3                  case ALM_FLOW_HIGH:   sprintf(&ChannelStatus[i][0],"流量偏大");             break;
+  261   3                  case ALM_FLOW_ABNOR:  sprintf(&ChannelStatus[i][0],"通信异常");             break;
+  262   3              }
+  263   2          }
+  264   1      
+  265   1          LcdCmd(LCD_CMD_WRITE, REG_CH_STATUS, (BYTE *)ChannelStatus, 128);
+  266   1      }
+  267          
+  268          void ShowTemp(u16 TEMPER)
+  269          {
+  270   1          WORD i = TEMPER;
+  271   1          LcdCmd(LCD_CMD_WRITE, REG_IO_TEMP, (BYTE *)&i,2);
+  272   1      }
+  273          
+  274          void ShowEmStop(bool on)
+  275          {
+  276   1          WORD i = on;
+  277   1          LcdCmd(LCD_CMD_WRITE, REG_IO_EMSTOP, (BYTE *)&i,2);
+  278   1      }
+  279          
+  280          //显示远程控制界面各通道的状态
+  281          void ShowRemCh()
+  282          {
+  283   1          BYTE i = 0;
+  284   1      
+  285   1          LcdCmd(LCD_CMD_WRITE, REG_SP_VALVE1, (BYTE *)&RemChStatus[0], 16);
+  286   1      //    LcdCmd(LCD_CMD_WRITE, REG_SP_VALVE1, (BYTE *)&SysParam.Valve[0], 1);
+  287   1           
+  288   1      }
+  289          
+  290          void SendParam()
+  291          {
+  292   1          BYTE i;
+  293   1          for (i=0;i<CHANNLE_NUM;i++)
+  294   1          {
+  295   2              ShowParam.Flow[i] = SwWord((WORD)(SysParam.SampFlow[i]*10));
+  296   2              //ShowParam.Valve[i] = SwWord(SysParam.Valve[i]);
+  297   2          }
+  298   1          ShowParam.Address = SwWord((WORD)SysParam.Address);
+  299   1          ShowParam.SampTime = SwWord((WORD)SysParam.SampTime);
+  300   1          ShowParam.SampVol = SwWord((WORD)(SysParam.SampVol*10));
+  301   1          ShowParam.BkLight = SwWord((WORD)SysParam.BkLight);
+  302   1          ShowParam.AlarmThres = SwWord((WORD)SysParam.AlarmThres);
+  303   1          ShowParam.SampMode = SwWord((WORD)SysParam.SampMode);
+  304   1          ShowParam.ChOnOff = SwWord((WORD)SysParam.Enable);
+  305   1      
+  306   1          memset(ShowParam.ModeTxt,0,16);
+  307   1          sprintf(ShowParam.ModeTxt, ModeText[SysParam.SampMode]);
+  308   1          
+  309   1          LcdCmd(LCD_CMD_WRITE, REG_SYS_PARAM, (BYTE *)&ShowParam, sizeof(SHOW_PARAM));
+  310   1      }
+  311          
+  312          
+  313          // 设置界面显示取样模式
+  314          void SetSampMode()
+  315          {
+  316   1          SysParam.SampMode = (BYTE)PopWord();
+  317   1          memset((char *)TempBuf,0,TEMP_BUF_LEN);
+  318   1          sprintf((char *)TempBuf, ModeText[SysParam.SampMode]);
+  319   1          LcdCmd(LCD_CMD_WRITE, REG_MODE_TXT, TempBuf, 16);
+  320   1      }
+  321          
+  322          
+C251 COMPILER V5.60.0,  LcdApp                                                             07/10/23  09:26:57  PAGE 6   
+
+  323          // 获取修改后的时间
+  324          void GetInputTime()
+  325          {
+  326   1          BYTE len = 7;
+  327   1          PageSwitch = 1;
+  328   1          NeedGetRet = true;
+  329   1          //Delay(300);
+  330   1          LcdCmd(LCD_CMD_READ, REG_DATE_TIME, &len, 1);
+  331   1      }
+  332          
+  333          // 在时间设置界面写入当前时间
+  334          void SetCurTime()
+  335          {
+  336   1          LCD_FRAME *pFrame;
+  337   1          LCD_DATE_TIME  ldt;
+  338   1          
+  339   1          BYTE dt[8] = {0};
+  340   1          pFrame = (LCD_FRAME *)&RecvBuf1[LcdFrameloc];
+  341   1          if (!CheckDataLen(4))
+  342   1          {
+  343   2              return;
+  344   2          }
+  345   1          
+  346   1          memcpy(dt, &pFrame->Data[1], 8);
+  347   1          
+  348   1          ldt.YearH = SwWord((WORD)(dt[0]/10));
+  349   1          ldt.YearL = SwWord((WORD)(dt[0]%10));
+  350   1          ldt.Month = SwWord((WORD)dt[1]);
+  351   1          ldt.Day   = SwWord((WORD)dt[2]);
+  352   1      
+  353   1          ldt.Hour   = SwWord((WORD)dt[4]);
+  354   1          ldt.Minute = SwWord((WORD)dt[5]);
+  355   1          ldt.Secend = SwWord((WORD)dt[6]);
+  356   1      
+  357   1          LcdCmd(LCD_CMD_WRITE, REG_DATE_TIME, (BYTE *)&ldt, sizeof(LCD_DATE_TIME));
+  358   1          
+  359   1      }
+  360          
+  361          
+  362          void SetChCount()
+  363          {
+  364   1          BYTE dat = (BYTE)PopWord();
+  365   1          BYTE i;
+  366   1      
+  367   1          SysParam.Enable = 0;
+  368   1          for (i=0;i<dat;i++)
+  369   1          {
+  370   2              SysParam.Enable |= (1<<i);
+  371   2          }
+  372   1      
+  373   1          ShowDevInfo();
+  374   1      }
+  375          
+  376          
+  377          
+  378          void ReadReg()
+  379          {
+  380   1          LCD_FRAME *pFrame = (LCD_FRAME *)&RecvBuf1[LcdFrameloc];
+  381   1          WORD addr = SwWord(pFrame->Addr);
+  382   1          RemPageflag = 1;
+  383   1          DebugInt(addr);
+  384   1           //printf("RemCtlFlag = %d\r\n",SysParam.RemCtlFlag);
+  385   1              switch (addr)
+  386   1              {
+  387   2                  // 启动界面
+  388   2                  case REG_STRART:   StartButton();        break;  // 点击开始
+C251 COMPILER V5.60.0,  LcdApp                                                             07/10/23  09:26:57  PAGE 7   
+
+  389   2                  case REG_PASSWORD: VerifyPassWord();     break;    // 密码
+  390   2      
+  391   2                  // 主界面
+  392   2                  case REG_DEV_CTL:  SampCtl();         break;  // 启停控制  
+  393   2                  case REG_RETRUN:   ReturnStart();     break;  // 返回启动页面
+  394   2                  case REG_TIME_BTN: GetLcdTime();      break;  // 点击时间
+  395   2                  case REG_HINT_ENTER: HideModule(MP_HINT_END);    break;
+  396   2      
+  397   2                  // 参数设置界面
+  398   2                  case REG_SP_FLOW1:  SysParam.SampFlow[0] = ((float)PopWord())/10;  break; //0x4000
+  399   2                  case REG_SP_FLOW2:  SysParam.SampFlow[1] = ((float)PopWord())/10;break; //   0x4001
+  400   2                  case REG_SP_FLOW3:  SysParam.SampFlow[2] = ((float)PopWord())/10;break; //   0x4002
+  401   2                  case REG_SP_FLOW4:  SysParam.SampFlow[3] = ((float)PopWord())/10;break; //   0x4003
+  402   2                  case REG_SP_FLOW5:  SysParam.SampFlow[4] = ((float)PopWord())/10;break; //   0x4004
+  403   2                  case REG_SP_FLOW6:  SysParam.SampFlow[5] = ((float)PopWord())/10;break; //   0x4005
+  404   2                  case REG_SP_FLOW7:  SysParam.SampFlow[6] = ((float)PopWord())/10;break; //   0x4006
+  405   2                  case REG_SP_FLOW8:  SysParam.SampFlow[7] = ((float)PopWord())/10;break; //   0x4007
+  406   2                  
+  407   2                  case REG_SP_ADDR:   SysParam.Address    = (BYTE)PopWord();         break; //   0x4008
+  408   2                  case REG_SP_TIME:   SysParam.SampTime   = PopWord();               break; //   0x4009
+  409   2                  case REG_SP_VOL:    SysParam.SampVol    = ((float)PopWord())/10;   break; //   0x400A
+  410   2                  case REG_SP_LIGHT:  SetBkLight(true);                               break; //   0x400B
+  411   2                  case REG_SP_THRES:  SysParam.AlarmThres = (BYTE)PopWord();          break; //   0x400C
+  412   2                  case REG_SP_MODE:   SetSampMode();                                  break; //   0x400D
+  413   2                  case REG_CH_ONOFF:  SysParam.Enable = (BYTE)PopWord();              break;
+  414   2                  case REG_SP_RET:    ModeHint(); UpdataUI(); SaveParam(); PageSwitch = 0;            break;   
+             -// 点击参数界面返回按钮
+  415   2      
+  416   2                  //远程控制
+  417   2                  /*
+  418   2                  case REG_SP_VALVE1: SysParam.Valve[0] = (BYTE)PopWord();break; // 0x4021
+  419   2                  case REG_SP_VALVE2: SysParam.Valve[1] = (BYTE)PopWord();break; //   0x4022
+  420   2                  case REG_SP_VALVE3: SysParam.Valve[2] = (BYTE)PopWord();break; //   0x4023
+  421   2                  case REG_SP_VALVE4: SysParam.Valve[3] = (BYTE)PopWord();break; //   0x4024
+  422   2                  case REG_SP_VALVE5: SysParam.Valve[4] = (BYTE)PopWord();break; //   0x4025
+  423   2                  case REG_SP_VALVE6: SysParam.Valve[5] = (BYTE)PopWord();break; //   0x4026
+  424   2                  case REG_SP_VALVE7: SysParam.Valve[6] = (BYTE)PopWord();break; //   0x4027
+  425   2                  case REG_SP_VALVE8: SysParam.Valve[7] = (BYTE)PopWord();break; //   0x4028
+  426   2                  */
+  427   2                  
+  428   2                  // 修改时间
+  429   2                  case REG_ADJ_TIME:   GetInputTime();    break;    // 时间修改完成，点击了返回按钮
+  430   2                  case REG_DATE_TIME:  SetLcdTime();      break;      // 修改屏幕RTC      
+  431   2                  case LCD_REG_RTC:    SetCurTime();      break;      // 获取屏幕时间返回
+  432   2      
+  433   2                  // IO 测试
+  434   2                  case REG_IO_BUMP:    printf("BUMP_ON\r\n");    g_Output[GAS_BUMP]  = (BYTE)PopWord();      Sh
+             -owTemp(TEMPER_Val);  break; // 0x5000
+  435   2                  case REG_IO_BLUE:    printf("BLUE_ON\r\n");    g_Output[LIGHT_BLUE]  = (BYTE)PopWord();    Sh
+             -owTemp(TEMPER_Val);  break; // 0x5001
+  436   2                  case REG_IO_YELLOW:  printf("YELLOW_ON\r\n");  g_Output[LIGHT_YELLOW]  = (BYTE)PopWord();  Sh
+             -owTemp(TEMPER_Val);   break; // 0x5002
+  437   2                  case REG_IO_SOUND:   printf("Sound_ON\r\n");   g_Output[ALARM_SOUND]  = (BYTE)PopWord();   Sh
+             -owTemp(TEMPER_Val);   break; // 0x5004
+  438   2                  case REG_IO_FAN:     printf("Fan_ON\r\n");     ((BYTE)PopWord())?FANS_M(1):FANS_M(0);      Sh
+             -owTemp(TEMPER_Val);  break; // 0x5005
+  439   2                  // 关于界面
+  440   2                  // case REG_CH_COUNT:  SetChCount();  break;  // 取消了，改到参数设置界面了
+  441   2                  
+  442   2              }
+  443   1      
+  444   1      }
+  445          
+  446          
+  447          void WriteReg()
+  448          {
+C251 COMPILER V5.60.0,  LcdApp                                                             07/10/23  09:26:57  PAGE 8   
+
+  449   1          #if 0
+                   LCD_FRAME *pFrame = (LCD_FRAME *)&RecvBuf1[LcdFrameloc];
+                   CString str;
+                   str.Format(_T("Write:0x%04X\r\n"), SwWord(pFrame->Addr));
+                   Log(str);
+                   #endif
+  455   1      }
+  456          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =      2991     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =       408     ------
+  xdata-const size     =    ------     ------
+  edata size           =        86     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =       494     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

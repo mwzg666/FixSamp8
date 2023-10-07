@@ -1,0 +1,104 @@
+C251 COMPILER V5.60.0,  FlowMeter                                                          07/10/23  09:26:57  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE FlowMeter
+OBJECT MODULE PLACED IN .\obj\FlowMeter.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE ModBus\FlowMeter.c XSMALL OPTIMIZE(0,SPEED) BROWSE INCDIR(.\Ads1110;.\
+                    -Flash;.\mcp4725;.\IIC;.\MwPro;.\Uart;.\Lcd;.\ModBus;.\Temperaturn) PRINT(.\obj\FlowMeter.lst) OBJECT(.\obj\FlowMeter.obj
+                    -) 
+
+stmt  level    source
+
+    1          #include "main.h"
+    2          #include "FlowMeter.h"
+    3          #include "LcdApp.h"
+    4          #include "ModBusHost.h"
+    5          
+    6          FLOW_VALUE xdata RealFlow[FLOW_METER_CNT];
+    7          
+    8          
+    9          // Count :  寄存器个数
+   10          void SendReadFlow(BYTE ch)
+   11          {
+   12   1          WORD RegCnt = 2;
+   13   1          HostSendCmd(RS485, ch, CMD_READ_REG, FLOW_VALUE_REG, RegCnt, NULL);
+   14   1      }
+   15          
+   16          
+   17          void ReadFlow(BYTE ch)
+   18          {
+   19   1          WORD r1,r2;
+   20   1          float val;
+   21   1          HostBufIndex = 0;
+   22   1          
+   23   1          r1 = PopReg();
+   24   1          r2 = PopReg(); 
+   25   1          val = (float)r1 * 65536 + r2;
+   26   1          RealFlow[ch-1].val = (float)(val / 1000);
+   27   1      
+   28   1          // 计算体积
+   29   1          RealFlow[ch-1].Totol += RealFlow[ch-1].val/30/1000;
+   30   1      
+   31   1          #if 0
+                   r1 = PopReg();
+                   r2 = PopReg(); 
+                   r3 = PopReg();
+                   val = ((float)r1 * 65536 + r2) * 1000 + r3; 
+                   //RealFlow[ch-1].Totol = (float)(val / 1000);
+                   
+                   
+                   r1 = PopReg();
+                   r2 = PopReg(); 
+                   val = (float)r1 * 65536 + r2;
+                   RealFlow[ch-1].Alarm = (float)(val / 1000);
+                   #endif
+   44   1      
+   45   1          ChannelError[ch-1] = 0;
+   46   1      }
+   47          
+   48          
+   49          void FlowMeterAck(BYTE *Buf, BYTE Len)
+   50          {
+   51   1          BYTE ch;
+   52   1          if (!ValidRtuFrame(Buf, Len))
+   53   1          {
+   54   2              //DebugMsg("Comm err\r\n",10);
+   55   2              return;
+   56   2          }
+   57   1      
+C251 COMPILER V5.60.0,  FlowMeter                                                          07/10/23  09:26:57  PAGE 2   
+
+   58   1          memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
+   59   1          memcpy(&ReadAckFrame, Buf, Len);
+   60   1         
+   61   1          ch = ReadAckFrame.Address; 
+   62   1          switch(ReadAckFrame.FunctionCode)
+   63   1          {      
+   64   2              case CMD_READ_REG: ReadFlow(ch);   break;
+   65   2          }
+   66   1      }
+   67          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =       342     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =       108     ------
+  xdata-const size     =    ------     ------
+  edata size           =        18     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =    ------     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
