@@ -94,7 +94,7 @@ typedef struct
     float TotleVol;              // 总取样体积
 }RUN_STATUS;
 
-//远程控制柜寄存器地址
+//远程控制柜上传寄存器地址
 typedef struct
 {
     WORD SypAddr;               //系统参数寄存器

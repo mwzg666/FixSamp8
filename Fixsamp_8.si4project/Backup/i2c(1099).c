@@ -1,7 +1,7 @@
 #include "main.h"
 #include "i2c.h"
 
-BYTE P2DIR = 1;
+BYTE P2DIR = 0;
 
 void delay_us(BYTE us)
 {

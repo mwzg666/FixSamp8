@@ -178,7 +178,6 @@ void HndLcdFrame()
 
     LCD_FRAME *pFrame;
     pFrame = (LCD_FRAME *)&RecvBuf1[LcdFrameloc];
-    //printf("Handlcd\r\n");
     switch(pFrame->Cmd)
     {
         case LCD_CMD_READ:  ReadReg();    break;
@@ -190,10 +189,12 @@ void HndLcdFrame()
 
 void HndLcdData()
 {
+    
     while (ValidLcdFrame())
     {
         //printf("LCD_OK\r\n");
         DataIndex = 1;
+        
         HndLcdFrame();
     }
 

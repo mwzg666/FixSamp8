@@ -128,7 +128,7 @@ void ADC_Temp()
     TEMPER =  Get_Temperature(TEMPER);    //º∆À„Œ¬∂»÷µ
 
     TEMPER *= 10; 
-    TEMPER_Val = TEMPER;
+    TEMPER_Val =270;//TEMPER;
     
     //ShowTemp(TEMPER_Val);
 

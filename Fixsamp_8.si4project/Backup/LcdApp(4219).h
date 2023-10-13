@@ -45,14 +45,25 @@
 #define REG_MODE_TXT 0x4010
 #define REG_SP_RET    0x4020
 
-#define REG_SP_VALVE1  0x4500       //远程控制显示(8个通道)
-#define REG_SP_VALVE2  0x4501
-#define REG_SP_VALVE3  0x4502
-#define REG_SP_VALVE4  0x4503
-#define REG_SP_VALVE5  0x4504
-#define REG_SP_VALVE6  0x4505
-#define REG_SP_VALVE7  0x4506
-#define REG_SP_VALVE8  0x4507
+//#define REG_SP_VALVE1  0x4021       //远程控制显示
+//#define REG_SP_VALVE2  0x4022
+//#define REG_SP_VALVE3  0x4023
+//#define REG_SP_VALVE4  0x4024
+//#define REG_SP_VALVE5  0x4025
+//#define REG_SP_VALVE6  0x4026
+//#define REG_SP_VALVE7  0x4027
+//#define REG_SP_VALVE8  0x4028
+
+#define REG_SP_VALVE1  0x5100       //远程控制显示(8个通道)
+#define REG_SP_VALVE2  0x5101
+#define REG_SP_VALVE3  0x5102
+#define REG_SP_VALVE4  0x5103
+#define REG_SP_VALVE5  0x5104
+#define REG_SP_VALVE6  0x5105
+#define REG_SP_VALVE7  0x5106
+#define REG_SP_VALVE8  0x5107
+
+
 
 // 修改时间
 #define REG_ADJ_TIME   0x2010  // 返回按钮

@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  ModBusDev                                                          07/10/23  09:26:57  PAGE 1   
+C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE ModBusDev
@@ -66,7 +66,7 @@ stmt  level    source
    55          {
    56   1          DWORD temp;
    57   1          temp = SwEndian(val);
-C251 COMPILER V5.60.0,  ModBusDev                                                          07/10/23  09:26:57  PAGE 2   
+C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 2   
 
    58   1          memcpy(&DevReadAck.Data[Offset], &temp, 4);  
    59   1      }
@@ -134,10 +134,10 @@ stmt  level    source
   121   1      
   122   1          return true;
   123   1      }
-C251 COMPILER V5.60.0,  ModBusDev                                                          07/10/23  09:26:57  PAGE 3   
+C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 3   
 
   124          
-  125          
+  125          //保存读数据
   126          void ModBusSave()
   127          {
   128   1          BYTE i = 0;
@@ -174,7 +174,7 @@ stmt  level    source
   159   1          WriteParam();
   160   1      }
   161          
-  162          //接收从设备读应答
+  162          //从设备读应答处理
   163          BYTE ReadAck()
   164          {
   165   1          WORD i = 0;
@@ -199,170 +199,148 @@ stmt  level    source
   184   1          return true;
   185   1      }
   186          
-  187          
-  188          // 发送写命令应答
-  189          void WriteAck(BYTE Mode)
-C251 COMPILER V5.60.0,  ModBusDev                                                          07/10/23  09:26:57  PAGE 4   
+  187          #if 0
+               // 写命令应答处理
+               void WriteAck(BYTE Mode)
+C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 4   
 
-  190          {
-  191   1          WORD crc;
-  192   1          memset(&DevWriteAck, 0, sizeof(DEVICE_WRITE_ACK));
-  193   1          
-  194   1          DevWriteAck.Address = RecvFrame.Address;  //Param.DevAddr;
-  195   1          DevWriteAck.FunctionCode = RecvFrame.FunctionCode;
-  196   1          DevWriteAck.RegAddr = RegSw(RecvFrame.RegAddr);
-  197   1          DevWriteAck.RegCount = RegSw(RecvFrame.RegCount);
-  198   1      
-  199   1          crc = CRC16Calc((BYTE *)&DevWriteAck, 6);
-  200   1          DevWriteAck.Crc = crc;
-  201   1      
-  202   1          if (Mode == RS485)
-  203   1          {
-  204   2              Uart4Send((BYTE *)&DevWriteAck, sizeof(DEVICE_WRITE_ACK));
-  205   2          }
-  206   1      }
-  207          
-  208          void ModBusSaveStatus()
-  209          {
-  210   1         BYTE i = 0;
-  211   1         //SysParam.TotleTime  = ModBusStatus.TotleTime;               
-  212   1         //SysParam.TotleFlow =  ModBusStatus.TotleVol;                
-  213   1      
-  214   1         //RunStatus.TotleFlow =  ModBusStatus.SampleFlow;              
-  215   1         //RunStatus.TotleVol =  ModBusStatus.SampleVol;               
-  216   1                         
-  217   1         //SysParam.SampTime = (ModBusStatus.RemTime +  RunStatus.RunTime)/60;
-  218   1         //RunStatus.RunTime =  ModBusStatus.RunTime;                 
-  219   1         RunStatus.Running = ModBusStatus.RunStatus;               
-  220   1      
-  221   1      //   for (i = 0;i<CHANNLE_NUM;i++)
-  222   1      //   {
-  223   1      //       RunStatus.Flow[i] = ModBusStatus.ChFlow[i];
-  224   1      //       RunStatus.Volume[i] = ModBusStatus.ChVol[i];
-  225   1      //   }
-  226   1         WriteParam();
-  227   1      }
-  228          
-  229          
-  230          // 把接收到的数据加载到寄存器中
-  231          bool WriteRegValue(WORD Reg, WORD Count)
-  232          {
-  233   1          //BYTE *p;
-  234   1          int len,offset;
-  235   1          
-  236   1          // 写设备地址
-  237   1          if ((Reg == MODBUS_INFO_ADD) && (Count == 1))
-  238   1          {
-  239   2              SysParam.Address = WriteAckFrame.Address;// RecvFrame.Data[2];
-  240   2              WriteParam();
-  241   2              return true;
-  242   2          }
-  243   1      
-  244   1          // 远程控制
-  245   1      //    if ((Reg == MODBUS_REM_CTL) && (Count == 1))
-  246   1      //    {
-  247   1      //        SysParam.SampMode = RecvFrame.Data[1];
-  248   1      //        if (RecvFrame.Data[2] == 1)
-  249   1      //        {
-  250   1      //            StartSamp();
-  251   1      //        }
-  252   1      //        else
-  253   1      //        {
-  254   1      //            StopSamp(false);
-  255   1      //        }
-C251 COMPILER V5.60.0,  ModBusDev                                                          07/10/23  09:26:57  PAGE 5   
+               {
+                   WORD crc;
+                   memset(&DevWriteAck, 0, sizeof(DEVICE_WRITE_ACK));
+                   
+                   DevWriteAck.Address = RecvFrame.Address;  //Param.DevAddr;
+                   DevWriteAck.FunctionCode = RecvFrame.FunctionCode;
+                   DevWriteAck.RegAddr = RegSw(RecvFrame.RegAddr);
+                   DevWriteAck.RegCount = RegSw(RecvFrame.RegCount);
+               
+                   crc = CRC16Calc((BYTE *)&DevWriteAck, 6);
+                   DevWriteAck.Crc = crc;
+               
+                   if (Mode == RS485)
+                   {
+                       Uart4Send((BYTE *)&DevWriteAck, sizeof(DEVICE_WRITE_ACK));
+                   }
+               }
+               
+               // 把接收到的数据加载到寄存器中
+               bool WriteRegValue(WORD Reg, WORD Count)
+               {
+                   //BYTE *p;
+                   int len,offset;
+                   
+                   // 写设备地址
+                   if ((Reg == MODBUS_INFO_ADD) && (Count == 1))
+                   {
+                       SysParam.Address = WriteAckFrame.Address;// RecvFrame.Data[2];
+                       WriteParam();
+                       return true;
+                   }
+               
+                   // 远程控制
+               //    if ((Reg == MODBUS_REM_CTL) && (Count == 1))
+               //    {
+               //        SysParam.SampMode = RecvFrame.Data[1];
+               //        if (RecvFrame.Data[2] == 1)
+               //        {
+               //            StartSamp();
+               //        }
+               //        else
+               //        {
+               //            StopSamp(false);
+               //        }
+               //        return true;
+               //    }
+               
+                    if ((Reg == MODBUS_STATUS_ADD) && (Count == 1))
+                   {
+                       //ModBusSaveStatus();
+                       return true;
+                   }
+                    
+                   if (Reg >= MODBUS_PARAM_ADD) 
+                   {
+                       len = sizeof(MODBUS_PARAM);
+                       offset = (Reg - MODBUS_PARAM_ADD) * 2;
+                       if ( (offset + Count * 2) > len )
+                       {
+                           return false;
+                       }
+                       //p = (BYTE *)&ModBusParam;
+                       //memcpy(&p[offset], &RecvFrame.Data[1], Count*2);
+                       //ModBusSaveParam();
+                       return true;
+                   }
+C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 5   
 
-  256   1      //        return true;
-  257   1      //    }
-  258   1      
-  259   1           if ((Reg == MODBUS_STATUS_ADD) && (Count == 1))
-  260   1          {
-  261   2              ModBusSaveStatus();
-  262   2              return true;
-  263   2          }
-  264   1           
-  265   1          if (Reg >= MODBUS_PARAM_ADD) 
-  266   1          {
-  267   2              len = sizeof(MODBUS_PARAM);
-  268   2              offset = (Reg - MODBUS_PARAM_ADD) * 2;
-  269   2              if ( (offset + Count * 2) > len )
-  270   2              {
-  271   3                  return false;
-  272   3              }
-  273   2              //p = (BYTE *)&ModBusParam;
-  274   2              //memcpy(&p[offset], &RecvFrame.Data[1], Count*2);
-  275   2              //ModBusSaveParam();
-  276   2              return true;
-  277   2          }
-  278   1          
-  279   1          return false;
-  280   1      }
-  281          
-  282          
-  283          // 接收从设备写应答
-  284          bool WriteAckDev(BYTE Mode)
-  285          {
-  286   1         
-  287   1          if (WriteAckFrame.Crc == 0)
-  288   1         {
-  289   2             return;
-  290   2         }
-  291   1         //printf("Write = OK");
-  292   1         return true;
-  293   1          //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
-  294   1      }
-*** WARNING C47 IN LINE 284 OF ModBus\ModBusDev.c: 'Mode': unreferenced parameter
-  295          
-  296          
-  297          void HndModBusRecv(BYTE Mode, BYTE *buf, BYTE len)
-  298          {
-  299   1          if (!ValidRtuFrame(buf, len))
-  300   1          {
-  301   2              return;
-  302   2          }
-  303   1          memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
-  304   1          memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
-  305   1          if(buf[0]!= SysParam.Address)
-  306   1          {
-  307   2              return;
-  308   2          }
-  309   1          switch(buf[1])
-  310   1          {
-  311   2              case CMD_READ_REG:
-  312   2              {
-  313   3                  memcpy(&ReadAckFrame, buf, len);
-  314   3                  ReadAck(); break; 
-  315   3                   
-  316   3              }
-  317   2              case CMD_WRITE_REG:
-  318   2              {
-  319   3                  memcpy(&WriteAckFrame, buf, len);
-  320   3                  WriteAckDev(Mode);  break;
-C251 COMPILER V5.60.0,  ModBusDev                                                          07/10/23  09:26:57  PAGE 6   
-
-  321   3              }
-  322   2          }
-  323   1      }
-  324          
-  325          
-  326          
-*** WARNING C180 IN LINE 294 OF ModBus\ModBusDev.c: 'WriteAckDev': not every path returns a value
-*** WARNING C180 IN LINE 294 OF ModBus\ModBusDev.c: 'WriteAckDev': not every path returns a value
+                   
+                   return false;
+               }
+               #endif
+  260          
+  261          //写应答处理
+  262          bool WriteAckDev(BYTE Mode)
+  263          {
+  264   1         
+  265   1          if (WriteAckFrame.Crc == 0)
+  266   1         {
+  267   2             return;
+  268   2         }
+  269   1         //printf("Write = OK");
+  270   1         return true;
+  271   1          //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
+  272   1      }
+*** WARNING C47 IN LINE 262 OF ModBus\ModBusDev.c: 'Mode': unreferenced parameter
+  273          
+  274          //Modbus读写解析
+  275          void HndModBusRecv(BYTE Mode, BYTE *buf, BYTE len)
+  276          {
+  277   1          if (!ValidRtuFrame(buf, len))
+  278   1          {
+  279   2              return;
+  280   2          }
+  281   1          memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
+  282   1          memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
+  283   1          if(buf[0]!= SysParam.Address)
+  284   1          {
+  285   2              return;
+  286   2          }
+  287   1          switch(buf[1])
+  288   1          {
+  289   2              case CMD_READ_REG:
+  290   2              {
+  291   3                  memcpy(&ReadAckFrame, buf, len);
+  292   3                  ReadAck(); break; 
+  293   3                   
+  294   3              }
+  295   2              case CMD_WRITE_REG:
+  296   2              {
+  297   3                  memcpy(&WriteAckFrame, buf, len);
+  298   3                  WriteAckDev(Mode);  break;
+  299   3              }
+  300   2          }
+  301   1      }
+  302          
+  303          
+  304          
+*** WARNING C180 IN LINE 272 OF ModBus\ModBusDev.c: 'WriteAckDev': not every path returns a value
+*** WARNING C180 IN LINE 272 OF ModBus\ModBusDev.c: 'WriteAckDev': not every path returns a value
 
 
 Module Information          Static   Overlayable
 ------------------------------------------------
-  code size            =      1141     ------
+  code size            =       865     ------
   ecode size           =    ------     ------
   data size            =    ------     ------
   idata size           =    ------     ------
   pdata size           =    ------     ------
   xdata size           =       567     ------
   xdata-const size     =    ------     ------
-  edata size           =        61     ------
+  edata size           =        49     ------
   bit size             =    ------     ------
   ebit size            =    ------     ------
   bitaddressable size  =    ------     ------
+C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 6   
+
   ebitaddressable size =    ------     ------
   far data size        =    ------     ------
   huge data size       =    ------     ------

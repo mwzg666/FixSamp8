@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  EepRom                                                             07/10/23  09:26:56  PAGE 1   
+C251 COMPILER V5.60.0,  EepRom                                                             08/10/23  18:34:43  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE EepRom
@@ -66,7 +66,7 @@ stmt  level    source
    55          
    56          //========================================================================
    57          // 函数: void EEPROM_SectorErase(u32 EE_address)
-C251 COMPILER V5.60.0,  EepRom                                                             07/10/23  09:26:56  PAGE 2   
+C251 COMPILER V5.60.0,  EepRom                                                             08/10/23  18:34:43  PAGE 2   
 
    58          // 描述: 擦除一个扇区.
    59          // 参数: EE_address:  要擦除的EEPROM的扇区中的一个字节地址.
@@ -134,7 +134,7 @@ stmt  level    source
   121   1          u8  *p;
   122   1          
   123   1          if(length == 0) return 1;   //长度为0错误
-C251 COMPILER V5.60.0,  EepRom                                                             07/10/23  09:26:56  PAGE 3   
+C251 COMPILER V5.60.0,  EepRom                                                             08/10/23  18:34:43  PAGE 3   
 
   124   1      
   125   1          IAP_ENABLE();                       //设置等待时间，允许IAP操作，送一次就够

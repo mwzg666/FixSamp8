@@ -7,9 +7,9 @@ extern BYTE P2DIR;
 
 
 #define I2C1_DIR   P2DIR
-#define I2C1_OUT   P1
-#define I2C1_IN    P1
-#define I2C1_SDA   (1<<4) 
+#define I2C1_OUT   P0
+#define I2C1_IN    P0
+#define I2C1_SDA   (1<<6) 
 #define I2C1_SCL   (1<<5) 
 
 #if 0

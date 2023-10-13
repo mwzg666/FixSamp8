@@ -94,7 +94,7 @@ typedef struct
     float TotleVol;              // 总取样体积
 }RUN_STATUS;
 
-//远程控制柜寄存器地址
+//远程控制柜上传寄存器地址
 typedef struct
 {
     WORD SypAddr;               //系统参数寄存器
@@ -192,7 +192,7 @@ extern RUN_STATUS xdata RunStatus;
 extern REM_REGADDR xdata RemRegAddr;
 
 extern float SimFlow;
-extern BYTE g_Output[OUT_IO_COUNT];
+extern alt_u8 g_Output[OUT_IO_COUNT];
 extern BYTE ChannelError[FLOW_METER_CNT];
 extern BYTE RemPageflag;
 extern BYTE PageSwitch;

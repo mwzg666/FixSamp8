@@ -1304,7 +1304,7 @@ void main(void)
     BYTE i = 0;
     SysInit();
     IoInit();
-    PW_MAIN(1);  // 主电源
+    PW_MAIN(0);  // 主电源
     LedInit();
     
     RUN_LED(1);

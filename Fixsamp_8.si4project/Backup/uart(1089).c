@@ -84,8 +84,8 @@ void UART2_config()
 
     S2CON = (S2CON & 0x3f) | 0x40;
     
-    PS2  = 0;    //中断高优先级
-    PS2H = 1;
+    PS2  = 1;    //中断高优先级
+    PS2H = 0;
     
     ES2   = 1;
     S2REN = 1;

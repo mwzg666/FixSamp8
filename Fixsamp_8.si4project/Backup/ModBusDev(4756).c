@@ -122,7 +122,7 @@ bool PackageReg(WORD Reg, WORD Count)
     return true;
 }
 
-//保存读数据
+
 void ModBusSave()
 {
     BYTE i = 0;
@@ -159,7 +159,7 @@ void ModBusSave()
     WriteParam();
 }
 
-//从设备读应答处理
+//接收从设备读应答
 BYTE ReadAck()
 {
     WORD i = 0;
@@ -184,8 +184,8 @@ BYTE ReadAck()
     return true;
 }
 
-#if 0
-// 写命令应答处理
+
+// 发送写命令应答
 void WriteAck(BYTE Mode)
 {
     WORD crc;
@@ -204,6 +204,28 @@ void WriteAck(BYTE Mode)
         Uart4Send((BYTE *)&DevWriteAck, sizeof(DEVICE_WRITE_ACK));
     }
 }
+
+void ModBusSaveStatus()
+{
+   BYTE i = 0;
+   //SysParam.TotleTime  = ModBusStatus.TotleTime;               
+   //SysParam.TotleFlow =  ModBusStatus.TotleVol;                
+
+   //RunStatus.TotleFlow =  ModBusStatus.SampleFlow;              
+   //RunStatus.TotleVol =  ModBusStatus.SampleVol;               
+                   
+   //SysParam.SampTime = (ModBusStatus.RemTime +  RunStatus.RunTime)/60;
+   //RunStatus.RunTime =  ModBusStatus.RunTime;                 
+   RunStatus.Running = ModBusStatus.RunStatus;               
+
+//   for (i = 0;i<CHANNLE_NUM;i++)
+//   {
+//       RunStatus.Flow[i] = ModBusStatus.ChFlow[i];
+//       RunStatus.Volume[i] = ModBusStatus.ChVol[i];
+//   }
+   WriteParam();
+}
+
 
 // 把接收到的数据加载到寄存器中
 bool WriteRegValue(WORD Reg, WORD Count)
@@ -236,7 +258,7 @@ bool WriteRegValue(WORD Reg, WORD Count)
 
      if ((Reg == MODBUS_STATUS_ADD) && (Count == 1))
     {
-        //ModBusSaveStatus();
+        ModBusSaveStatus();
         return true;
     }
      
@@ -256,9 +278,9 @@ bool WriteRegValue(WORD Reg, WORD Count)
     
     return false;
 }
-#endif
 
-//写应答处理
+
+// 接收从设备写应答
 bool WriteAckDev(BYTE Mode)
 {
    
@@ -271,7 +293,7 @@ bool WriteAckDev(BYTE Mode)
     //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
 }
 
-//Modbus读写解析
+
 void HndModBusRecv(BYTE Mode, BYTE *buf, BYTE len)
 {
     if (!ValidRtuFrame(buf, len))

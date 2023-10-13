@@ -68,9 +68,9 @@ uint code temp_table[]={
 
 void Adc_Init()
 {
-    //P_SW2 |= 0x80;
+    P_SW2 |= 0x80;
     ADCTIM = 0x3f;      //设置 ADC 内部时序，ADC采样时间建议设最大值
-    ADCCFG = 0x2f;      //设置 ADC 时钟为系统时钟/2/16
+    ADCCFG = 0x2f;      //设置 ADC 时钟为系统时钟/2/16/16
     ADC_CONTR = 0x80;   //使能 ADC 模块
     _nop_();
     _nop_();
@@ -128,7 +128,7 @@ void ADC_Temp()
     TEMPER =  Get_Temperature(TEMPER);    //计算温度值
 
     TEMPER *= 10; 
-    TEMPER_Val = TEMPER;
+    TEMPER_Val =TEMPER;
     
     //ShowTemp(TEMPER_Val);
 

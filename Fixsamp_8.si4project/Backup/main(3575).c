@@ -28,8 +28,8 @@ float SimFlow = 35.0;
 u16 SendFlowTim = 0;
 BYTE SendFlowFlag = 0;
 
-u16 RemReadTim = 0;     //远程控制读从机开始时间
-BYTE RemReadflag = 0;   //远程控制读从机开始标志
+u16 RemReadTim = 0;
+BYTE RemReadflag = 0;
 //BYTE RemPageflag = 0;
 
 u16 LcdBusyTim = 0;
@@ -294,10 +294,12 @@ void Task1s()
     static BYTE tm = 0;
 
     CLR_WDT = 1;  // 喂狗
+    
     tm++;
     if(tm == 10)
     {
         ADC_Temp();
+        //RemPageCtl();
         SyncModBusDev();
         tm = 0;
     } 
@@ -379,6 +381,7 @@ void TimerTask()
             Time1s = 0;
             Task1s();
         }
+        //Error();
         RunLed(delta);
         IoCtlTask();
         GetValve();
@@ -616,11 +619,16 @@ void ReportInput()
 void LedInit()
 {
     // 初始状态都为0
+    
+    // 三色LED
+    //GRE_LED(0);    // 绿
+    //YEL_LED(0);    // 黄
+    //RED_LED(0);    // 红
 
     // 指示灯
+    //RED_LIGHT(0); // 红灯
     YEL_LIGHT(0);   // 黄灯
     BLU_LIGHT(0);   // 蓝灯
-    
     CloseValve();   // 电磁阀
     BUMP_M(0);      // 泵
     FANS_M(0);      // 风扇
@@ -889,8 +897,13 @@ void DevRun()
     RunCheck();
 }
 
+/*
+void MainTask()
+{
+    
+}
+*/
 
-//获取电磁阀状态
 void GetValve()
 {
     BYTE i;
@@ -907,10 +920,10 @@ void GetValve()
 //           SysParam.Valve[i] = 0;
         }
     }
-
+    //CheckValve();
 }
 
-//查询电磁阀状态
+//开启或关闭通道电磁阀
 void CheckValve()
 {
     BYTE i;
@@ -948,7 +961,6 @@ void CheckValve()
     Delay(20);
 }
 
-//关闭电磁阀
 void CloseValve()
 {
     VALVE0(0);
@@ -960,6 +972,7 @@ void CloseValve()
     VALVE6(0);
     VALVE7(0);
     Delay(20);
+
 }
 // 开启气泵
 void OpenPump()
@@ -1058,16 +1071,15 @@ void SyncModBusDev()
     
 }
 
-//远程控制读写命令处理
 BYTE SendRemCtlCmd(BYTE Addr, BYTE Cmd, WORD Reg, WORD Count, BYTE * Data)
 {
    
     WORD i = 0;
     WORD crc, SendLen;
-
+    //Error();
     memset(&HostSendFrame, 0, sizeof(HOST_SEND_FRAME));
     
-    HostSendFrame.Address = Addr; 
+    HostSendFrame.Address = Addr; //Param.DevAddr;
     HostSendFrame.FunctionCode = Cmd;
     HostSendFrame.RegAddr = RegSw(Reg);
     HostSendFrame.RegCount =  RegSw(Count);
@@ -1086,6 +1098,7 @@ BYTE SendRemCtlCmd(BYTE Addr, BYTE Cmd, WORD Reg, WORD Count, BYTE * Data)
     
     // 计算CRC , 并添加到数据后面
     crc = CRC16Calc((BYTE *)&HostSendFrame, SendLen);
+    //printf("crc = %x\r\n",crc);
     HostSendFrame.Data[i]  = (BYTE)(crc);
     HostSendFrame.Data[i+1] = (BYTE)(crc>>8);
     
@@ -1115,9 +1128,10 @@ void FlowTask()
 //远程控制界面切换
 void RemPageCtl()
 {
+   //BYTE i = 0;
    static BYTE StartRem[5] = {0};
    static BYTE RemFlag[5] = {0};
-
+   //#if 0
     switch(PageSwitch)
     {
         case 0:
@@ -1142,6 +1156,8 @@ void RemPageCtl()
                         SendParam();
                         ModeHint(); 
                         CheckAlarm();
+
+                        //UpdataUI();
                         EnterPage(PAGE_MAIN);
                         StartRem[4] = 0;
                     }
@@ -1166,6 +1182,7 @@ void RemPageCtl()
                         RemFlag[0]  = 0; 
                         SendParam();
                         ModeHint(); 
+                        //UpdataUI();
                         EnterPage(PAGE_START);
                         StartRem[0] = 0;
                     }
@@ -1197,6 +1214,7 @@ void RemPageCtl()
                         SendParam();
                         ModeHint(); 
                         CheckAlarm();
+                        //UpdataUI();
                         EnterPage(PAGE_MAIN);
                     }
                     else
@@ -1231,6 +1249,7 @@ void RemPageCtl()
                     RemFlag[2] = 0;
                     SendParam();
                     ModeHint(); 
+                    //UpdataUI();
                     EnterPage(PAGE_SET);
                     StartRem[2] = 0;
                  }
@@ -1257,16 +1276,19 @@ void RemPageCtl()
                     RemFlag[3] = 0;
                     SendParam();
                     ModeHint(); 
+                    //UpdataUI();
                     EnterPage(PAGE_TIME);
                     StartRem[3] = 0;
                  }
             }
            break; 
-        }  
+        }
+         
     }
+    //printf("REmFlag2 = %d\r\n",SysParam.RemCtlFlag);
 }
 
-//远程控制向从机写
+
 void RemCtlWrite()
 {
     SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_PARAM_ADD, 2, (BYTE *)&ModBusParam);
@@ -1276,8 +1298,6 @@ void RemCtlWrite()
     SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_INFO_ADD, 1, (BYTE *)&ModBusInfo);
 }
 
-
-//远程控制读从机
 void RemCtlTask()
 {   
 	WORD RegCnt = 3;
@@ -1294,7 +1314,8 @@ void RemCtlTask()
             Delay(50);
 //            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_INFO_ADD, 3, NULL);
 //            Delay(50);
-
+//            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_REM_CTL, 1, NULL);
+//            Delay(50);
         }
     //}
 }
@@ -1304,7 +1325,7 @@ void main(void)
     BYTE i = 0;
     SysInit();
     IoInit();
-    PW_MAIN(1);  // 主电源
+    PW_MAIN(0);  // 主电源
     LedInit();
     
     RUN_LED(1);
@@ -1357,6 +1378,7 @@ void main(void)
     PageSwitch = 0;
     while(1)
     {
+        //printf("RemCtlFlag = %d\r\n",SysParam.RemCtlFlag);
         TimerTask();
         HndInput();
          

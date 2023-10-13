@@ -255,7 +255,7 @@ void ShowStatus()
         switch (ChannelAlarm[i])
         {
             case ALM_CH_DISABLE:  sprintf(&ChannelStatus[i][0],"禁用");               break;
-            case ALM_FLOW_NOR:    sprintf(&ChannelStatus[i][0],"正\xfd常\xfd");       break;
+            case ALM_FLOW_NOR:    sprintf(&ChannelStatus[i][0],"正\xfd常\xfd");               break;
             case ALM_FLOW_LOW:    sprintf(&ChannelStatus[i][0],"流量偏小");             break;
             case ALM_FLOW_HIGH:   sprintf(&ChannelStatus[i][0],"流量偏大");             break;
             case ALM_FLOW_ABNOR:  sprintf(&ChannelStatus[i][0],"通信异常");             break;
@@ -265,14 +265,12 @@ void ShowStatus()
     LcdCmd(LCD_CMD_WRITE, REG_CH_STATUS, (BYTE *)ChannelStatus, 128);
 }
 
-//显示温度
 void ShowTemp(u16 TEMPER)
 {
     WORD i = TEMPER;
     LcdCmd(LCD_CMD_WRITE, REG_IO_TEMP, (BYTE *)&i,2);
 }
 
-//显示急停状态
 void ShowEmStop(bool on)
 {
     WORD i = on;
@@ -285,6 +283,8 @@ void ShowRemCh()
     BYTE i = 0;
 
     LcdCmd(LCD_CMD_WRITE, REG_SP_VALVE1, (BYTE *)&RemChStatus[0], 16);
+//    LcdCmd(LCD_CMD_WRITE, REG_SP_VALVE1, (BYTE *)&SysParam.Valve[0], 1);
+     
 }
 
 void SendParam()
@@ -412,6 +412,18 @@ void ReadReg()
         case REG_SP_MODE:   SetSampMode();                                  break; //   0x400D
         case REG_CH_ONOFF:  SysParam.Enable = (BYTE)PopWord();              break;
         case REG_SP_RET:    ModeHint(); UpdataUI(); SaveParam(); PageSwitch = 0;            break;   // 点击参数界面返回按钮
+
+        //远程控制
+        /*
+        case REG_SP_VALVE1: SysParam.Valve[0] = (BYTE)PopWord();break; // 0x4021
+        case REG_SP_VALVE2: SysParam.Valve[1] = (BYTE)PopWord();break; //   0x4022
+        case REG_SP_VALVE3: SysParam.Valve[2] = (BYTE)PopWord();break; //   0x4023
+        case REG_SP_VALVE4: SysParam.Valve[3] = (BYTE)PopWord();break; //   0x4024
+        case REG_SP_VALVE5: SysParam.Valve[4] = (BYTE)PopWord();break; //   0x4025
+        case REG_SP_VALVE6: SysParam.Valve[5] = (BYTE)PopWord();break; //   0x4026
+        case REG_SP_VALVE7: SysParam.Valve[6] = (BYTE)PopWord();break; //   0x4027
+        case REG_SP_VALVE8: SysParam.Valve[7] = (BYTE)PopWord();break; //   0x4028
+        */
         
         // 修改时间
         case REG_ADJ_TIME:   GetInputTime();    break;    // 时间修改完成，点击了返回按钮
@@ -419,11 +431,11 @@ void ReadReg()
         case LCD_REG_RTC:    SetCurTime();      break;      // 获取屏幕时间返回
 
         // IO 测试
-        case REG_IO_BUMP:    g_Output[GAS_BUMP]  = (BYTE)PopWord();      ShowTemp(TEMPER_Val);    break; // 0x5000
-        case REG_IO_BLUE:    g_Output[LIGHT_BLUE]  = (BYTE)PopWord();    ShowTemp(TEMPER_Val);    break; // 0x5001
-        case REG_IO_YELLOW:  g_Output[LIGHT_YELLOW]  = (BYTE)PopWord();  ShowTemp(TEMPER_Val);    break; // 0x5002
-        case REG_IO_SOUND:   g_Output[ALARM_SOUND]  = (BYTE)PopWord();   ShowTemp(TEMPER_Val);    break; // 0x5004
-        case REG_IO_FAN:     ((BYTE)PopWord())?FANS_M(1):FANS_M(0);      ShowTemp(TEMPER_Val);    break; // 0x5005
+        case REG_IO_BUMP:    /*printf("BUMP_ON\r\n");*/    g_Output[GAS_BUMP]  = (BYTE)PopWord();      ShowTemp(TEMPER_Val);    break; // 0x5000
+        case REG_IO_BLUE:    /*printf("BLUE_ON\r\n");*/    g_Output[LIGHT_BLUE]  = (BYTE)PopWord();    ShowTemp(TEMPER_Val);    break; // 0x5001
+        case REG_IO_YELLOW:  /*printf("YELLOW_ON\r\n");*/  g_Output[LIGHT_YELLOW]  = (BYTE)PopWord();  ShowTemp(TEMPER_Val);    break; // 0x5002
+        case REG_IO_SOUND:   /*printf("Sound_ON\r\n");*/   g_Output[ALARM_SOUND]  = (BYTE)PopWord();   ShowTemp(TEMPER_Val);    break; // 0x5004
+        case REG_IO_FAN:    /* printf("Fan_ON\r\n");*/     ((BYTE)PopWord())?FANS_M(1):FANS_M(0);      ShowTemp(TEMPER_Val);    break; // 0x5005
         // 关于界面
         // case REG_CH_COUNT:  SetChCount();  break;  // 取消了，改到参数设置界面了
         
