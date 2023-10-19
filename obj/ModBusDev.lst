@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 1   
+C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE ModBusDev
@@ -66,7 +66,7 @@ stmt  level    source
    55          {
    56   1          DWORD temp;
    57   1          temp = SwEndian(val);
-C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 2   
+C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 2   
 
    58   1          memcpy(&DevReadAck.Data[Offset], &temp, 4);  
    59   1      }
@@ -134,7 +134,7 @@ stmt  level    source
   121   1      
   122   1          return true;
   123   1      }
-C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 3   
+C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 3   
 
   124          
   125          //保存读数据
@@ -202,7 +202,7 @@ stmt  level    source
   187          #if 0
                // 写命令应答处理
                void WriteAck(BYTE Mode)
-C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 4   
+C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 4   
 
                {
                    WORD crc;
@@ -270,7 +270,7 @@ stmt  level    source
                        //ModBusSaveParam();
                        return true;
                    }
-C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 5   
+C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 5   
 
                    
                    return false;
@@ -281,12 +281,12 @@ stmt  level    source
   262          bool WriteAckDev(BYTE Mode)
   263          {
   264   1         
-  265   1          if (WriteAckFrame.Crc == 0)
-  266   1         {
-  267   2             return;
-  268   2         }
+  265   1          //if (WriteAckFrame.Crc == 0)
+  266   1         //{
+  267   1             //return;
+  268   1         //}
   269   1         //printf("Write = OK");
-  270   1         return true;
+  270   1         //return true;
   271   1          //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
   272   1      }
 *** WARNING C47 IN LINE 262 OF ModBus\ModBusDev.c: 'Mode': unreferenced parameter
@@ -322,13 +322,13 @@ stmt  level    source
   302          
   303          
   304          
-*** WARNING C180 IN LINE 272 OF ModBus\ModBusDev.c: 'WriteAckDev': not every path returns a value
-*** WARNING C180 IN LINE 272 OF ModBus\ModBusDev.c: 'WriteAckDev': not every path returns a value
+*** WARNING C135 IN LINE 272 OF ModBus\ModBusDev.c: 'WriteAckDev': no return value
+*** WARNING C135 IN LINE 272 OF ModBus\ModBusDev.c: 'WriteAckDev': no return value
 
 
 Module Information          Static   Overlayable
 ------------------------------------------------
-  code size            =       865     ------
+  code size            =       851     ------
   ecode size           =    ------     ------
   data size            =    ------     ------
   idata size           =    ------     ------
@@ -339,7 +339,7 @@ Module Information          Static   Overlayable
   bit size             =    ------     ------
   ebit size            =    ------     ------
   bitaddressable size  =    ------     ------
-C251 COMPILER V5.60.0,  ModBusDev                                                          08/10/23  18:34:43  PAGE 6   
+C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 6   
 
   ebitaddressable size =    ------     ------
   far data size        =    ------     ------

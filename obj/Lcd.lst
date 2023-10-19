@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  Lcd                                                                08/10/23  18:34:43  PAGE 1   
+C251 COMPILER V5.60.0,  Lcd                                                                19/10/23  10:22:01  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE Lcd
@@ -66,7 +66,7 @@ stmt  level    source
                    temp = ((input&0x000000FF)<<24) |
                           ((input&0x0000FF00)<<8) |
                           ((input&0x00FF0000)>>8) |
-C251 COMPILER V5.60.0,  Lcd                                                                08/10/23  18:34:43  PAGE 2   
+C251 COMPILER V5.60.0,  Lcd                                                                19/10/23  10:22:01  PAGE 2   
 
                           ((input&0xFF000000)>>24);
                    return temp;
@@ -134,7 +134,7 @@ stmt  level    source
   122   1          //Delay(200);
   123   1          return TRUE;
   124   1      }
-C251 COMPILER V5.60.0,  Lcd                                                                08/10/23  18:34:43  PAGE 3   
+C251 COMPILER V5.60.0,  Lcd                                                                19/10/23  10:22:01  PAGE 3   
 
   125          
   126          
@@ -202,7 +202,7 @@ stmt  level    source
   188   1          LcdFrameloc += (pFrame->Lenght + 3);
   189   1      }
   190          
-C251 COMPILER V5.60.0,  Lcd                                                                08/10/23  18:34:43  PAGE 4   
+C251 COMPILER V5.60.0,  Lcd                                                                19/10/23  10:22:01  PAGE 4   
 
   191          void HndLcdData()
   192          {
@@ -270,7 +270,7 @@ stmt  level    source
   254   1      }
   255          
   256          
-C251 COMPILER V5.60.0,  Lcd                                                                08/10/23  18:34:43  PAGE 5   
+C251 COMPILER V5.60.0,  Lcd                                                                19/10/23  10:22:01  PAGE 5   
 
   257          void SetLcdTime()
   258          {
@@ -338,7 +338,7 @@ stmt  level    source
   320          {
   321   1          WORD dat = SwWord(module);
   322   1          LcdCmd(LCD_CMD_WRITE, mp, (BYTE *)&dat, 2);
-C251 COMPILER V5.60.0,  Lcd                                                                08/10/23  18:34:43  PAGE 6   
+C251 COMPILER V5.60.0,  Lcd                                                                19/10/23  10:22:01  PAGE 6   
 
   323   1      }
   324          

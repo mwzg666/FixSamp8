@@ -428,7 +428,7 @@ void ReadReg()
         // case REG_CH_COUNT:  SetChCount();  break;  // 取消了，改到参数设置界面了
         
     }
-    //RemCtlWrite();
+
 }
 
 

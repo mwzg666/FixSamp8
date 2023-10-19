@@ -314,7 +314,6 @@ void Task1s()
             DevRun();
         }
     }
-    //RemCtlWrite();
 }
 
 
@@ -1270,11 +1269,11 @@ void RemPageCtl()
 //远程控制向从机写
 void RemCtlWrite()
 {
-    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_PARAM_ADD, 3, (BYTE *)&ModBusParam);
-    
-    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_STATUS_ADD, 11, (BYTE *)&ModBusStatus);
-
-    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_INFO_ADD, 3, (BYTE *)&ModBusInfo);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_PARAM_ADD, 2, (BYTE *)&ModBusParam);
+    Delay(50);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_STATUS_ADD, 1, (BYTE *)&ModBusStatus);
+    Delay(50);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_INFO_ADD, 1, (BYTE *)&ModBusInfo);
 }
 
 
@@ -1282,8 +1281,7 @@ void RemCtlWrite()
 void RemCtlTask()
 {   
 	WORD RegCnt = 3;
-	//RemCtlWrite();
-    Delay(100);
+	
 //    if (RunStatus.Running)
 //    {
          if(RemReadflag == 1)
@@ -1291,11 +1289,11 @@ void RemCtlTask()
             RemReadflag = 0;
 
             SendRemCtlCmd(1, CMD_READ_REG, MODBUS_PARAM_ADD, RegCnt, NULL);
-
+            Delay(50);
             SendRemCtlCmd(1, CMD_READ_REG, MODBUS_STATUS_ADD, 11, NULL);
-
-            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_INFO_ADD, 3, NULL);
-
+            Delay(50);
+//            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_INFO_ADD, 3, NULL);
+//            Delay(50);
 
         }
     //}
@@ -1361,11 +1359,12 @@ void main(void)
     {
         TimerTask();
         HndInput();
-             
+         
+        //RemCtlWrite();
+         
         Uart1Hnd();
         Uart2Hnd();
         Uart3Hnd();
-        //RemCtlWrite();
         RemPageCtl();
         
         FlowTask();

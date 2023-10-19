@@ -262,12 +262,12 @@ bool WriteRegValue(WORD Reg, WORD Count)
 bool WriteAckDev(BYTE Mode)
 {
    
-    //if (WriteAckFrame.Crc == 0)
-   //{
-       //return;
-   //}
+    if (WriteAckFrame.Crc == 0)
+   {
+       return;
+   }
    //printf("Write = OK");
-   //return true;
+   return true;
     //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
 }
 

@@ -232,7 +232,6 @@ void DebugMsg(char *msg);
 void DebugInt(int msg);
 void DumpCmd(BYTE *dat, BYTE len);
 
-void RemCtlWrite();
 void RemPageCtl();
 
 
