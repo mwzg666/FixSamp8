@@ -45,6 +45,7 @@ typedef 	unsigned int	uint;
 #define PAGESWITCH_NUM  4
 
 
+#include "IrDA.h"
 #include "uart.h"
 #include "EepRom.h"
 #include "MwPro.h"
@@ -193,7 +194,7 @@ extern REM_REGADDR xdata RemRegAddr;
 extern float SimFlow;
 extern BYTE g_Output[OUT_IO_COUNT];
 extern BYTE ChannelError[FLOW_METER_CNT];
-extern BYTE Remflag_RW;
+extern BYTE RemPageflag;
 extern BYTE PageSwitch;
 
 

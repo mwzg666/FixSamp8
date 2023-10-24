@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  10:09:03  PAGE 1   
+C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  15:04:22  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE LcdApp
@@ -66,7 +66,7 @@ stmt  level    source
    56          void ShowDevInfo()
    57          {
    58   1          BYTE i,Cnt = 0;;
-C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  10:09:03  PAGE 2   
+C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  15:04:22  PAGE 2   
 
    59   1          for (i=0;i<8;i++)
    60   1          {
@@ -134,7 +134,7 @@ stmt  level    source
   122   1          WORD dat;
   123   1          if (!CheckDataLen(1))
   124   1          {
-C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  10:09:03  PAGE 3   
+C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  15:04:22  PAGE 3   
 
   125   2              return;
   126   2          }
@@ -202,7 +202,7 @@ stmt  level    source
   188   2             
   189   2          }  
   190   1          else
-C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  10:09:03  PAGE 4   
+C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  15:04:22  PAGE 4   
 
   191   1          {
   192   2              StopSamp(false);
@@ -270,7 +270,7 @@ stmt  level    source
   254   1          {
   255   2              switch (ChannelAlarm[i])
   256   2              {
-C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  10:09:03  PAGE 5   
+C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  15:04:22  PAGE 5   
 
   257   3                  case ALM_CH_DISABLE:  sprintf(&ChannelStatus[i][0],"禁用");               break;
   258   3                  case ALM_FLOW_NOR:    sprintf(&ChannelStatus[i][0],"正\xfd常\xfd");       break;
@@ -338,7 +338,7 @@ stmt  level    source
   320   1      }
   321          
   322          
-C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  10:09:03  PAGE 6   
+C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  15:04:22  PAGE 6   
 
   323          // 获取修改后的时间
   324          void GetInputTime()
@@ -406,7 +406,7 @@ stmt  level    source
   386   2              // 启动界面
   387   2              case REG_STRART:   StartButton();        break;  // 点击开始
   388   2              case REG_PASSWORD: VerifyPassWord();     break;    // 密码
-C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  10:09:03  PAGE 7   
+C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  15:04:22  PAGE 7   
 
   389   2      
   390   2              // 主界面
@@ -475,7 +475,7 @@ Module Information          Static   Overlayable
 ------------------------------------------------
   code size            =      2921     ------
   ecode size           =    ------     ------
-C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  10:09:03  PAGE 8   
+C251 COMPILER V5.60.0,  LcdApp                                                             24/10/23  15:04:22  PAGE 8   
 
   data size            =    ------     ------
   idata size           =    ------     ------

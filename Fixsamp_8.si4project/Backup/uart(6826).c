@@ -375,7 +375,7 @@ void Uart4Hnd()
     if (Rx4_Timer > 20)
     {
         Rx4_Timer = 0;
-        printf("USART_SypAddr3 = %x\r\n",RemRegAddr.SypAddr);
+        //printf("SypAddr3 = %x\r\n",RemRegAddr.SypAddr);
         HndModBusRecv(RS485, RX4_Buffer,RX4_Cnt);
         
         ClearUart4Buf();

@@ -32,6 +32,7 @@ typedef struct
 //    DWORD RunTime;
     WORD  RunStatus;
     WORD  Alarm[8];
+    WORD  Res;
 //    float ChFlow[8];
 //    float ChVol[8];
 }MODBUS_STATUS;

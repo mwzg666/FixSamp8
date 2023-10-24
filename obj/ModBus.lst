@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  10:09:03  PAGE 1   
+C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  15:04:23  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE ModBus
@@ -66,7 +66,7 @@ stmt  level    source
    56          // 把大端字节数组转化为32bit整数
    57          DWORD BytesToDWord(BYTE *dat)
    58          {
-C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  10:09:03  PAGE 2   
+C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  15:04:23  PAGE 2   
 
    59   1          DWORD ret,temp;
    60   1          memcpy(&temp, dat, 4);
@@ -134,7 +134,7 @@ stmt  level    source
   122   1          if (crc != 0)
   123   1          {
   124   2              return false;
-C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  10:09:03  PAGE 3   
+C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  15:04:23  PAGE 3   
 
   125   2          }
   126   1          

@@ -1,1 +1,7 @@
----- TCP Matches (0 in 0 files) ----
+---- Remflag Matches (6 in 3 files) ----
+main.c line 33 : BYTE Remflag_RW = 0;
+SendRemCtlCmd in main.c :         Remflag = 0;
+SendRemCtlCmd in main.c :         Remflag = 1;
+main.h line 196 : extern BYTE Remflag_RW;
+ModBusDev.c (ModBus) line 17 : //extern BYTE Remflag;
+HndModBusRecv in ModBusDev.c (ModBus) :     if(Remflag == 1)

@@ -14,7 +14,6 @@
 MODBUS_PARAM xdata ModBusParam;
 MODBUS_STATUS xdata ModBusStatus;
 MODBUS_INFO xdata ModBusInfo;
-//extern BYTE Remflag;
 
 
 
@@ -155,7 +154,7 @@ void ModBusSave()
 //       RunStatus.Volume[i] = ModBusStatus.ChVol[i];
 //    }
 
-    //SysParam.Address = ModBusInfo.Address;
+    SysParam.Address = ModBusInfo.Address;
     
     WriteParam();
 }
@@ -281,9 +280,10 @@ void HndModBusRecv(BYTE Mode, BYTE *buf, BYTE len)
         return;
     }
     printf("Hand\r\n");
+    //printf("SypAddr2 = %x\r\n",RemRegAddr.SypAddr);
     memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
     memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
-    if(buf[0]!= 2)//SysParam.Address)
+    if(buf[0]!= SysParam.Address)
     {
         return;
     }
@@ -301,54 +301,6 @@ void HndModBusRecv(BYTE Mode, BYTE *buf, BYTE len)
             WriteAckDev(Mode);  break;
         }
     }
-
-//    if(Remflag_RW)
-//    {
-//         if (!ValidRtuFrame(buf, len))
-//        {
-//            printf("Rread_eroor\r\n");
-//            return;
-//        }
-//        printf("Read_Hand\r\n");
-//        memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
-//        
-//        if(buf[0]!= 2)//SysParam.Address)
-//        {
-//            return;
-//        }
-//        switch(buf[1])
-//        {
-//            case CMD_READ_REG:
-//            {
-//                memcpy(&ReadAckFrame, buf, len);
-//                ReadAck(); break; 
-//                 
-//            }
-//        }
-//    }
-//    else
-//    {
-//         if (!ValidRtuFrame(buf, len))
-//        {
-//            printf("Write_eroor\r\n");
-//            return;
-//        }
-//        printf("Write_Hand\r\n");
-//        memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
-//        if(buf[0]!= 2)//SysParam.Address)
-//        {
-//            return;
-//        }
-//        switch(buf[1])
-//        {
-//            case CMD_WRITE_REG:
-//            {
-//                memcpy(&WriteAckFrame, buf, len);
-//                WriteAckDev(Mode);  break;
-//            }
-//        }
-//    }
-
 }
 
 

@@ -30,7 +30,7 @@ BYTE SendFlowFlag = 0;
 
 u16 RemReadTim = 0;     //远程控制读从机开始时间
 BYTE RemReadflag = 0;   //远程控制读从机开始标志
-BYTE Remflag_RW = 0;
+//BYTE RemPageflag = 0;
 
 u16 LcdBusyTim = 0;
 BYTE LcdBusyFlag = 0;
@@ -1054,7 +1054,7 @@ void SyncModBusDev()
 //    }
 
     memset(&ModBusInfo, 0, sizeof(MODBUS_INFO));
-    ModBusInfo.Address = 2;//SysParam.Address;
+    ModBusInfo.Address = SysParam.Address;
     ModBusInfo.Version = VERSION;
     ModBusInfo.Addr = RemRegAddr.InfoAddr;
     
@@ -1078,40 +1078,24 @@ BYTE SendRemCtlCmd(BYTE Addr, BYTE Cmd, WORD Reg, WORD Count, BYTE * Data)
 
     if (((Count*2) > 0) && (Data != NULL))
     {
-        //Remflag_RW = 0;
         HostSendFrame.Data[0] = Count*2;  // 数据长度
         SendLen ++;
         i++;
         memcpy(&HostSendFrame.Data[1], Data,Count*2);
         SendLen += Count*2;
         i+=(Count*2);
-        // 计算CRC , 并添加到数据后面
-//        crc = CRC16Calc((BYTE *)&HostSendFrame, SendLen);
-//        HostSendFrame.Data[i]  = (BYTE)(crc);
-//        HostSendFrame.Data[i+1] = (BYTE)(crc>>8);
-//        
-//        SendLen += 2; 
-//
-//
-//        Uart4Send((BYTE *)&HostSendFrame, (BYTE)SendLen);
-//
-//        return true;
     }
-    //else
-    //{
-        //Remflag_RW = 1;
-        // 计算CRC , 并添加到数据后面
-        crc = CRC16Calc((BYTE *)&HostSendFrame, SendLen);
-        HostSendFrame.Data[i]  = (BYTE)(crc);
-        HostSendFrame.Data[i+1] = (BYTE)(crc>>8);
-        
-        SendLen += 2; 
+    // 计算CRC , 并添加到数据后面
+    crc = CRC16Calc((BYTE *)&HostSendFrame, SendLen);
+    HostSendFrame.Data[i]  = (BYTE)(crc);
+    HostSendFrame.Data[i+1] = (BYTE)(crc>>8);
+    
+    SendLen += 2; 
 
 
-        Uart4Send((BYTE *)&HostSendFrame, (BYTE)SendLen);
+    Uart4Send((BYTE *)&HostSendFrame, (BYTE)SendLen);
 
-        return true;
-    //}
+    return true;
 }
 
 void FlowTask()
@@ -1289,12 +1273,12 @@ void RemPageCtl()
 void RemCtlWrite()
 {
     WORD RegCnt = 3;
-    WORD RegCnt2 = 10;
-    SyncModBusDev();
+    WORD RegCnt2 = 11;
+    //SyncModBusDev();
     
-    SendRemCtlCmd(2, CMD_WRITE_REG, MODBUS_PARAM_ADD, RegCnt, (BYTE *)&ModBusParam);
-    SendRemCtlCmd(2, CMD_WRITE_REG, MODBUS_STATUS_ADD, RegCnt2, (BYTE *)&ModBusStatus);
-    SendRemCtlCmd(2, CMD_WRITE_REG, MODBUS_INFO_ADD, RegCnt, (BYTE *)&ModBusInfo);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_PARAM_ADD, RegCnt, (BYTE *)&ModBusParam);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_STATUS_ADD, RegCnt2, (BYTE *)&ModBusStatus);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_INFO_ADD, RegCnt, (BYTE *)&ModBusInfo);
 
 }
 
@@ -1303,25 +1287,21 @@ void RemCtlWrite()
 void RemCtlTask()
 {   
 	WORD RegCnt = 3;
-    WORD RegCnt2 = 10;
+    WORD RegCnt2 = 11;
 	//RemCtlWrite();
-    //Delay(200);
 //    if (RunStatus.Running)
 //    {
          if(RemReadflag == 1)
         {
             RemReadflag = 0;
 
-            SendRemCtlCmd(2, CMD_READ_REG, MODBUS_PARAM_ADD, RegCnt, NULL);
-            Delay(200);
-            SendRemCtlCmd(2, CMD_READ_REG, MODBUS_STATUS_ADD, RegCnt2, NULL);  
-            Delay(200);
-            SendRemCtlCmd(2, CMD_READ_REG, MODBUS_INFO_ADD, RegCnt, NULL);
-            Delay(200);
+            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_PARAM_ADD, RegCnt, NULL);
+            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_STATUS_ADD, RegCnt2, NULL);  
+            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_INFO_ADD, RegCnt, NULL);
 
         }
     //}
-    RemPageCtl();
+    //RemPageCtl();
 }
 
 void main(void)
@@ -1355,7 +1335,7 @@ void main(void)
     Delay(200);
 
     SyncModBusDev();
-    //RemCtlWrite();
+    RemCtlWrite();
     
     
     RUN_LED(0);
@@ -1381,17 +1361,14 @@ void main(void)
     PageSwitch = 0;
     while(1)
     {
-        TimerTask();
         HndInput();
-        FlowTask();
-        
+        TimerTask(); 
+        FlowTask();   
+        RemPageCtl(); 
+        RemCtlWrite();
         Uart1Hnd();
         Uart2Hnd();
-        Uart3Hnd();
-        
-  
-        //RemPageCtl(); 
-       //RemCtlWrite();
+        Uart3Hnd();              
         Uart4Hnd();
         
         RemCtlTask();

@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 1   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  15:04:24  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE ModBusDev
@@ -25,185 +25,186 @@ stmt  level    source
    14          MODBUS_PARAM xdata ModBusParam;
    15          MODBUS_STATUS xdata ModBusStatus;
    16          MODBUS_INFO xdata ModBusInfo;
-   17          
+   17          //extern BYTE Remflag;
    18          
    19          
-   20          /*
-   21          ModBus 帧格式
-   22          1. 发送帧
-   23          地址           命令     寄存器    寄存器数量    数据                                             CRC   
-   24          0A(固定值)     Cmd(1)   RX(2)     n(2)          无数据表示读取、有数据表示写对应的寄存器 
-   25          
-   26          数据定义:  长度 + 数据
-   27                     n*2    dat(n*2)
-   28          
-   29          2. 应答帧 -- 返回数据
-   30          地址           命令   数据长度    数据      CRC   
-   31          0A(固定值)     Cmd    n(1)        dat(n)
-   32          
-   33          3. 应答帧 -- 返回状态
-   34          地址           命令   寄存器   寄存器数量     CRC   
-   35          0A(固定值)     Cmd    Rx(2)    n(2)                       
-   36          */
-   37          
+   20          
+   21          /*
+   22          ModBus 帧格式
+   23          1. 发送帧
+   24          地址           命令     寄存器    寄存器数量    数据                                             CRC   
+   25          0A(固定值)     Cmd(1)   RX(2)     n(2)          无数据表示读取、有数据表示写对应的寄存器 
+   26          
+   27          数据定义:  长度 + 数据
+   28                     n*2    dat(n*2)
+   29          
+   30          2. 应答帧 -- 返回数据
+   31          地址           命令   数据长度    数据      CRC   
+   32          0A(固定值)     Cmd    n(1)        dat(n)
+   33          
+   34          3. 应答帧 -- 返回状态
+   35          地址           命令   寄存器   寄存器数量     CRC   
+   36          0A(固定值)     Cmd    Rx(2)    n(2)                       
+   37          */
    38          
-   39          DEVICE_READ_ACK xdata  DevReadAck;   
-   40          
-   41          DEVICE_WRITE_ACK xdata DevWriteAck;
-   42          
-   43          HOST_SEND_FRAME xdata RecvFrame;   
-   44          
+   39          
+   40          DEVICE_READ_ACK xdata  DevReadAck;   
+   41          
+   42          DEVICE_WRITE_ACK xdata DevWriteAck;
+   43          
+   44          HOST_SEND_FRAME xdata RecvFrame;   
    45          
-   46          // 把浮点数转换为大端打包到发送数据区
-   47          void PackageFloatValue(WORD Offset, float val)
-   48          {
-   49   1          BYTE temp[4] = {0};
-   50   1          FloatToBytes(val,temp);
-   51   1          memcpy(&DevReadAck.Data[Offset], temp, 4);  
-   52   1      }
-   53          
-   54          void PackageDWordValue(WORD Offset, DWORD val)
-   55          {
-   56   1          DWORD temp;
-   57   1          temp = SwEndian(val);
-C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 2   
+   46          
+   47          // 把浮点数转换为大端打包到发送数据区
+   48          void PackageFloatValue(WORD Offset, float val)
+   49          {
+   50   1          BYTE temp[4] = {0};
+   51   1          FloatToBytes(val,temp);
+   52   1          memcpy(&DevReadAck.Data[Offset], temp, 4);  
+   53   1      }
+   54          
+   55          void PackageDWordValue(WORD Offset, DWORD val)
+   56          {
+   57   1          DWORD temp;
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  15:04:24  PAGE 2   
 
-   58   1          memcpy(&DevReadAck.Data[Offset], &temp, 4);  
-   59   1      }
-   60          
+   58   1          temp = SwEndian(val);
+   59   1          memcpy(&DevReadAck.Data[Offset], &temp, 4);  
+   60   1      }
    61          
-   62          void PackageWordValue(WORD Offset, WORD val)
-   63          {
-   64   1          BYTE temp[2] = {0};
-   65   1          temp[0] = (BYTE)(val >> 8);
-   66   1          temp[1] = (BYTE)val;
-   67   1          memcpy(&DevReadAck.Data[Offset], temp, 2);  
-   68   1      }
-   69          
-   70          // 把寄存器值包装到发送缓存
-   71          bool PackageReg(WORD Reg, WORD Count)
-   72          {
-   73   1          DWORD offset;
-   74   1          BYTE *p;
-   75   1      
-   76   1          if (Count > 128)
-   77   1          {
-   78   2              return false;
-   79   2          }
-   80   1      
-   81   1          if (Reg >= MODBUS_INFO_ADD)
-   82   1          {
-   83   2              offset = (Reg - MODBUS_INFO_ADD)*2;
-   84   2              if (offset >= sizeof(MODBUS_INFO))
-   85   2              {
-   86   3                  return false;
-   87   3              }
-   88   2              
-   89   2              p = (BYTE *)&ModBusInfo;
-   90   2              //memcpy(&ModBusInfo,&RecvFrame.Data, Count*2);
-   91   2              memcpy(DevReadAck.Data, &p[offset], Count*2);  
-   92   2          }
-   93   1          else if (Reg >= MODBUS_STATUS_ADD)
-   94   1          {
-   95   2              offset = (Reg - MODBUS_STATUS_ADD)*2;
-   96   2              if (offset >= sizeof(MODBUS_STATUS))
-   97   2              {
-   98   3                  return false;
-   99   3              }
-  100   2              
-  101   2              p = (BYTE *)&ModBusStatus;
-  102   2              //memcpy(&ModBusStatus,&RecvFrame.Data, Count*2);
-  103   2              memcpy(DevReadAck.Data, &p[offset], Count*2);  
-  104   2          }
-  105   1          else if (Reg >= MODBUS_PARAM_ADD)
-  106   1          {
-  107   2              offset = (Reg - MODBUS_PARAM_ADD)*2;
-  108   2              if (offset >= sizeof(MODBUS_PARAM))
-  109   2              {
-  110   3                  return false;
-  111   3              }
-  112   2              
-  113   2              p = (BYTE *)&ModBusParam;
-  114   2              //memcpy(&ModBusParam,&RecvFrame.Data, Count*2);
-  115   2              memcpy(DevReadAck.Data, &p[offset], Count*2); 
-  116   2          }
-  117   1          else
-  118   1          {
-  119   2              return false;
-  120   2          }
-  121   1      
-  122   1          return true;
-  123   1      }
-C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 3   
+   62          
+   63          void PackageWordValue(WORD Offset, WORD val)
+   64          {
+   65   1          BYTE temp[2] = {0};
+   66   1          temp[0] = (BYTE)(val >> 8);
+   67   1          temp[1] = (BYTE)val;
+   68   1          memcpy(&DevReadAck.Data[Offset], temp, 2);  
+   69   1      }
+   70          
+   71          // 把寄存器值包装到发送缓存
+   72          bool PackageReg(WORD Reg, WORD Count)
+   73          {
+   74   1          DWORD offset;
+   75   1          BYTE *p;
+   76   1      
+   77   1          if (Count > 128)
+   78   1          {
+   79   2              return false;
+   80   2          }
+   81   1      
+   82   1          if (Reg >= MODBUS_INFO_ADD)
+   83   1          {
+   84   2              offset = (Reg - MODBUS_INFO_ADD)*2;
+   85   2              if (offset >= sizeof(MODBUS_INFO))
+   86   2              {
+   87   3                  return false;
+   88   3              }
+   89   2              
+   90   2              p = (BYTE *)&ModBusInfo;
+   91   2              //memcpy(&ModBusInfo,&RecvFrame.Data, Count*2);
+   92   2              memcpy(DevReadAck.Data, &p[offset], Count*2);  
+   93   2          }
+   94   1          else if (Reg >= MODBUS_STATUS_ADD)
+   95   1          {
+   96   2              offset = (Reg - MODBUS_STATUS_ADD)*2;
+   97   2              if (offset >= sizeof(MODBUS_STATUS))
+   98   2              {
+   99   3                  return false;
+  100   3              }
+  101   2              
+  102   2              p = (BYTE *)&ModBusStatus;
+  103   2              //memcpy(&ModBusStatus,&RecvFrame.Data, Count*2);
+  104   2              memcpy(DevReadAck.Data, &p[offset], Count*2);  
+  105   2          }
+  106   1          else if (Reg >= MODBUS_PARAM_ADD)
+  107   1          {
+  108   2              offset = (Reg - MODBUS_PARAM_ADD)*2;
+  109   2              if (offset >= sizeof(MODBUS_PARAM))
+  110   2              {
+  111   3                  return false;
+  112   3              }
+  113   2              
+  114   2              p = (BYTE *)&ModBusParam;
+  115   2              //memcpy(&ModBusParam,&RecvFrame.Data, Count*2);
+  116   2              memcpy(DevReadAck.Data, &p[offset], Count*2); 
+  117   2          }
+  118   1          else
+  119   1          {
+  120   2              return false;
+  121   2          }
+  122   1      
+  123   1          return true;
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  15:04:24  PAGE 3   
 
-  124          
-  125          //保存读数据
-  126          void ModBusSave()
-  127          {
-  128   1          BYTE i = 0;
-  129   1      //    SysParam.AlarmThres = ModBusParam.AlamrThres;
-  130   1      //    SysParam.SampVol = ModBusParam.SampFlow;
-  131   1      //    SysParam.SampMode = ModBusParam.SampMode;
-  132   1      //    SysParam.SampTime = ModBusParam.SampTime;
-  133   1      //    SysParam.SampVol = ModBusParam.SampVol;
-  134   1          SysParam.Enable = ModBusParam.ChEnable;
-  135   1          SysParam.RemCtlFlag = ModBusParam.RemCtlFlag;
-  136   1      //    for(i = 0;i < 8;i++)
-  137   1      //    {
-  138   1      //         //SysParam.Valve[i] = ModBusParam.ChValve[i];
-  139   1      //    }
-  140   1      
-  141   1      //    SysParam.TotleTime  = ModBusStatus.TotleTime;               
-  142   1      //    SysParam.TotleFlow =  ModBusStatus.TotleVol;                
-  143   1      //
-  144   1      //    RunStatus.TotleFlow =  ModBusStatus.SampleFlow;              
-  145   1      //    RunStatus.TotleVol =  ModBusStatus.SampleVol;               
-  146   1                         
-  147   1          //SysParam.SampTime = (ModBusStatus.RemTime +  RunStatus.RunTime)/60;
-  148   1      //    RunStatus.RunTime =  ModBusStatus.RunTime;                 
-  149   1          RunStatus.Running = ModBusStatus.RunStatus;               
-  150   1      
-  151   1      //    for (i = 0;i<CHANNLE_NUM;i++)
-  152   1      //    {
-  153   1      //       RunStatus.Flow[i] = ModBusStatus.ChFlow[i];
-  154   1      //       RunStatus.Volume[i] = ModBusStatus.ChVol[i];
-  155   1      //    }
-  156   1      
-  157   1          SysParam.Address = ModBusInfo.Address;
-  158   1          
-  159   1          WriteParam();
-  160   1      }
-  161          
-  162          //从设备读应答处理
-  163          BYTE ReadAck()
-  164          {
-  165   1          WORD i = 0;
-  166   1          WORD reg = 0;   
-  167   1          memcpy(&reg, &ReadAckFrame.Data[0], 2);
-  168   1          if(reg == RemRegAddr.SypAddr)
-  169   1          {
-  170   2              printf("SypAddr = %x\r\n",RemRegAddr.SypAddr);
-  171   2              memcpy(&ModBusParam, &ReadAckFrame.Data, sizeof(MODBUS_PARAM));
-  172   2          }
-  173   1          else if(reg == RemRegAddr.StuAddr)
-  174   1          {
-  175   2              memcpy(&ModBusStatus, &ReadAckFrame.Data, sizeof(MODBUS_STATUS));
-  176   2          }
-  177   1          else if(reg == RemRegAddr.InfoAddr)
-  178   1          {
-  179   2              memcpy(&ModBusInfo, &ReadAckFrame.Data, sizeof(MODBUS_INFO));
-  180   2          }
-  181   1      
-  182   1          ModBusSave();
-  183   1          
-  184   1          return true;
-  185   1      }
-  186          
-  187          #if 0
+  124   1      }
+  125          
+  126          //保存读数据
+  127          void ModBusSave()
+  128          {
+  129   1          BYTE i = 0;
+  130   1      //    SysParam.AlarmThres = ModBusParam.AlamrThres;
+  131   1      //    SysParam.SampVol = ModBusParam.SampFlow;
+  132   1      //    SysParam.SampMode = ModBusParam.SampMode;
+  133   1      //    SysParam.SampTime = ModBusParam.SampTime;
+  134   1      //    SysParam.SampVol = ModBusParam.SampVol;
+  135   1          SysParam.Enable = ModBusParam.ChEnable;
+  136   1          SysParam.RemCtlFlag = ModBusParam.RemCtlFlag;
+  137   1      //    for(i = 0;i < 8;i++)
+  138   1      //    {
+  139   1      //         //SysParam.Valve[i] = ModBusParam.ChValve[i];
+  140   1      //    }
+  141   1      
+  142   1      //    SysParam.TotleTime  = ModBusStatus.TotleTime;               
+  143   1      //    SysParam.TotleFlow =  ModBusStatus.TotleVol;                
+  144   1      //
+  145   1      //    RunStatus.TotleFlow =  ModBusStatus.SampleFlow;              
+  146   1      //    RunStatus.TotleVol =  ModBusStatus.SampleVol;               
+  147   1                         
+  148   1          //SysParam.SampTime = (ModBusStatus.RemTime +  RunStatus.RunTime)/60;
+  149   1      //    RunStatus.RunTime =  ModBusStatus.RunTime;                 
+  150   1          RunStatus.Running = ModBusStatus.RunStatus;               
+  151   1      
+  152   1      //    for (i = 0;i<CHANNLE_NUM;i++)
+  153   1      //    {
+  154   1      //       RunStatus.Flow[i] = ModBusStatus.ChFlow[i];
+  155   1      //       RunStatus.Volume[i] = ModBusStatus.ChVol[i];
+  156   1      //    }
+  157   1      
+  158   1          //SysParam.Address = ModBusInfo.Address;
+  159   1          
+  160   1          WriteParam();
+  161   1      }
+  162          
+  163          //从设备读应答处理
+  164          BYTE ReadAck()
+  165          {
+  166   1          WORD i = 0;
+  167   1          WORD reg = 0;   
+  168   1          memcpy(&reg, &ReadAckFrame.Data[0], 2);
+  169   1          if(reg == RemRegAddr.SypAddr)
+  170   1          {
+  171   2              printf("SypAddr = %x\r\n",RemRegAddr.SypAddr);
+  172   2              memcpy(&ModBusParam, &ReadAckFrame.Data, sizeof(MODBUS_PARAM));
+  173   2          }
+  174   1          else if(reg == RemRegAddr.StuAddr)
+  175   1          {
+  176   2              memcpy(&ModBusStatus, &ReadAckFrame.Data, sizeof(MODBUS_STATUS));
+  177   2          }
+  178   1          else if(reg == RemRegAddr.InfoAddr)
+  179   1          {
+  180   2              memcpy(&ModBusInfo, &ReadAckFrame.Data, sizeof(MODBUS_INFO));
+  181   2          }
+  182   1      
+  183   1          ModBusSave();
+  184   1          
+  185   1          return true;
+  186   1      }
+  187          
+  188          #if 0
                // 写命令应答处理
-               void WriteAck(BYTE Mode)
-C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 4   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  15:04:24  PAGE 4   
 
+               void WriteAck(BYTE Mode)
                {
                    WORD crc;
                    memset(&DevWriteAck, 0, sizeof(DEVICE_WRITE_ACK));
@@ -269,41 +270,40 @@ stmt  level    source
                        //memcpy(&p[offset], &RecvFrame.Data[1], Count*2);
                        //ModBusSaveParam();
                        return true;
-                   }
-C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 5   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  15:04:24  PAGE 5   
 
+                   }
                    
                    return false;
                }
                #endif
-  260          
-  261          //写应答处理
-  262          bool WriteAckDev(BYTE Mode)
-  263          {
-  264   1         
-  265   1          //if (WriteAckFrame.Crc == 0)
-  266   1         //{
-  267   1             //return;
-  268   1         //}
-  269   1         printf("Write = OK\r\n");
-  270   1         return true;
-  271   1          //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
-  272   1      }
-*** WARNING C47 IN LINE 262 OF ModBus\ModBusDev.c: 'Mode': unreferenced parameter
-  273          
-  274          //Modbus读写解析
-  275          void HndModBusRecv(BYTE Mode, BYTE *buf, BYTE len)
-  276          {
-  277   1          if (!ValidRtuFrame(buf, len))
-  278   1          {
-  279   2              printf("eroor\r\n");
-  280   2              return;
-  281   2          }
-  282   1          printf("Hand\r\n");
-  283   1          //printf("SypAddr2 = %x\r\n",RemRegAddr.SypAddr);
+  261          
+  262          //写应答处理
+  263          bool WriteAckDev(BYTE Mode)
+  264          {
+  265   1         
+  266   1          //if (WriteAckFrame.Crc == 0)
+  267   1         //{
+  268   1             //return;
+  269   1         //}
+  270   1         printf("Write = OK\r\n");
+  271   1         return true;
+  272   1          //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
+  273   1      }
+*** WARNING C47 IN LINE 263 OF ModBus\ModBusDev.c: 'Mode': unreferenced parameter
+  274          
+  275          //Modbus读写解析
+  276          void HndModBusRecv(BYTE Mode, BYTE *buf, BYTE len)
+  277          {
+  278   1          if (!ValidRtuFrame(buf, len))
+  279   1          {
+  280   2              printf("eroor\r\n");
+  281   2              return;
+  282   2          }
+  283   1          printf("Hand\r\n");
   284   1          memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
   285   1          memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
-  286   1          if(buf[0]!= SysParam.Address)
+  286   1          if(buf[0]!= 2)//SysParam.Address)
   287   1          {
   288   2              return;
   289   2          }
@@ -321,26 +321,74 @@ stmt  level    source
   301   3                  WriteAckDev(Mode);  break;
   302   3              }
   303   2          }
-  304   1      }
-  305          
-  306          
-  307          
+  304   1      
+  305   1      //    if(Remflag_RW)
+  306   1      //    {
+  307   1      //         if (!ValidRtuFrame(buf, len))
+  308   1      //        {
+  309   1      //            printf("Rread_eroor\r\n");
+  310   1      //            return;
+  311   1      //        }
+  312   1      //        printf("Read_Hand\r\n");
+  313   1      //        memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
+  314   1      //        
+  315   1      //        if(buf[0]!= 2)//SysParam.Address)
+  316   1      //        {
+  317   1      //            return;
+  318   1      //        }
+  319   1      //        switch(buf[1])
+  320   1      //        {
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  15:04:24  PAGE 6   
+
+  321   1      //            case CMD_READ_REG:
+  322   1      //            {
+  323   1      //                memcpy(&ReadAckFrame, buf, len);
+  324   1      //                ReadAck(); break; 
+  325   1      //                 
+  326   1      //            }
+  327   1      //        }
+  328   1      //    }
+  329   1      //    else
+  330   1      //    {
+  331   1      //         if (!ValidRtuFrame(buf, len))
+  332   1      //        {
+  333   1      //            printf("Write_eroor\r\n");
+  334   1      //            return;
+  335   1      //        }
+  336   1      //        printf("Write_Hand\r\n");
+  337   1      //        memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
+  338   1      //        if(buf[0]!= 2)//SysParam.Address)
+  339   1      //        {
+  340   1      //            return;
+  341   1      //        }
+  342   1      //        switch(buf[1])
+  343   1      //        {
+  344   1      //            case CMD_WRITE_REG:
+  345   1      //            {
+  346   1      //                memcpy(&WriteAckFrame, buf, len);
+  347   1      //                WriteAckDev(Mode);  break;
+  348   1      //            }
+  349   1      //        }
+  350   1      //    }
+  351   1      
+  352   1      }
+  353          
+  354          
+  355          
 
 
 Module Information          Static   Overlayable
 ------------------------------------------------
-  code size            =       911     ------
+  code size            =       898     ------
   ecode size           =    ------     ------
   data size            =    ------     ------
   idata size           =    ------     ------
   pdata size           =    ------     ------
-  xdata size           =       567     ------
+  xdata size           =       565     ------
   xdata-const size     =    ------     ------
   edata size           =        49     ------
   bit size             =    ------     ------
   ebit size            =    ------     ------
-C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 6   
-
   bitaddressable size  =    ------     ------
   ebitaddressable size =    ------     ------
   far data size        =    ------     ------
