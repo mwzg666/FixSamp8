@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  ModBus                                                             19/10/23  10:22:02  PAGE 1   
+C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  10:09:03  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE ModBus
@@ -31,138 +31,139 @@ stmt  level    source
    21   4                      CRCResult >>= 1;
    22   4                  }
    23   3              }
-   24   2          }
-   25   1          
-   26   1          return (WORD)CRCResult;
-   27   1      }
+   24   2          } 
+   25   1          return (WORD)CRCResult;
+   26   1      }
+   27          
    28          
-   29          
-   30          /*转化字节序*/
-   31          void ByteConvert(BYTE *InData, BYTE *OutData)
-   32          {  
-   33   1          OutData[3] = InData[0];
-   34   1          OutData[2] = InData[1];
-   35   1          OutData[1] = InData[2];
-   36   1          OutData[0] = InData[3];  
-   37   1      }
-   38          
-   39          // 把浮点数转化为大端字节数组
-   40          void FloatToBytes(float dat, BYTE *res)
-   41          {
-   42   1          BYTE temp[4] = {0};
-   43   1          memcpy(temp, &dat, 4);
-   44   1          ByteConvert(temp, res);
-   45   1      }
-   46          
-   47          // 把大端字节数组转化为浮点数
-   48          float BytesToFloat(BYTE *dat)
-   49          {
-   50   1          float ret;
-   51   1          BYTE temp[4] = {0};
-   52   1          ByteConvert(dat, temp);
-   53   1          memcpy(&ret, temp, 4);
-   54   1          return ret;
-   55   1      }
-   56          
-   57          // 把大端字节数组转化为32bit整数
-   58          DWORD BytesToDWord(BYTE *dat)
-C251 COMPILER V5.60.0,  ModBus                                                             19/10/23  10:22:02  PAGE 2   
+   29          /*转化字节序*/
+   30          void ByteConvert(BYTE *InData, BYTE *OutData)
+   31          {  
+   32   1          OutData[3] = InData[0];
+   33   1          OutData[2] = InData[1];
+   34   1          OutData[1] = InData[2];
+   35   1          OutData[0] = InData[3];  
+   36   1      }
+   37          
+   38          // 把浮点数转化为大端字节数组
+   39          void FloatToBytes(float dat, BYTE *res)
+   40          {
+   41   1          BYTE temp[4] = {0};
+   42   1          memcpy(temp, &dat, 4);
+   43   1          ByteConvert(temp, res);
+   44   1      }
+   45          
+   46          // 把大端字节数组转化为浮点数
+   47          float BytesToFloat(BYTE *dat)
+   48          {
+   49   1          float ret;
+   50   1          BYTE temp[4] = {0};
+   51   1          ByteConvert(dat, temp);
+   52   1          memcpy(&ret, temp, 4);
+   53   1          return ret;
+   54   1      }
+   55          
+   56          // 把大端字节数组转化为32bit整数
+   57          DWORD BytesToDWord(BYTE *dat)
+   58          {
+C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  10:09:03  PAGE 2   
 
-   59          {
-   60   1          DWORD ret,temp;
-   61   1          memcpy(&temp, dat, 4);
-   62   1          ret = SwEndian(temp);
-   63   1          return ret;
-   64   1      }
-   65          
-   66          // 把大端字节数组转化为16bit整数
-   67          WORD BytesToWord(BYTE *dat)
-   68          {
-   69   1          WORD ret,temp;
-   70   1          memcpy(&temp, dat, 2);
-   71   1          ret = SwEndianW(temp);
-   72   1          return ret;
-   73   1      }
+   59   1          DWORD ret,temp;
+   60   1          memcpy(&temp, dat, 4);
+   61   1          ret = SwEndian(temp);
+   62   1          return ret;
+   63   1      }
+   64          
+   65          // 把大端字节数组转化为16bit整数
+   66          WORD BytesToWord(BYTE *dat)
+   67          {
+   68   1          WORD ret,temp;
+   69   1          memcpy(&temp, dat, 2);
+   70   1          ret = SwEndianW(temp);
+   71   1          return ret;
+   72   1      }
+   73          
    74          
-   75          
-   76          /*********************************
-   77          函数名称:DWORD SwEndian(DWORD input)
-   78          函数功能:大小端整数互换
-   79          作者:姚明钢
-   80          修改记录:2018.5.4
-   81          **********************************/
-   82          DWORD SwEndian(DWORD input)
-   83          { 
-   84   1          DWORD temp=0;
-   85   1          temp = ((input&0x000000FF)<<24) |
-   86   1                 ((input&0x0000FF00)<<8) |
-   87   1                 ((input&0x00FF0000)>>8) |
-   88   1                 ((input&0xFF000000)>>24);
-   89   1          return temp;
-   90   1      }
-   91          
-   92          WORD SwEndianW(WORD input)
-   93          { 
-   94   1          WORD temp=0;
-   95   1          temp = ((input&0x00FF)<<8) |
-   96   1                 ((input&0xFF00)>>8);
-   97   1          return temp;
-   98   1      }
+   75          /*********************************
+   76          函数名称:DWORD SwEndian(DWORD input)
+   77          函数功能:大小端整数互换
+   78          作者:姚明钢
+   79          修改记录:2018.5.4
+   80          **********************************/
+   81          DWORD SwEndian(DWORD input)
+   82          { 
+   83   1          DWORD temp=0;
+   84   1          temp = ((input&0x000000FF)<<24) |
+   85   1                 ((input&0x0000FF00)<<8) |
+   86   1                 ((input&0x00FF0000)>>8) |
+   87   1                 ((input&0xFF000000)>>24);
+   88   1          return temp;
+   89   1      }
+   90          
+   91          WORD SwEndianW(WORD input)
+   92          { 
+   93   1          WORD temp=0;
+   94   1          temp = ((input&0x00FF)<<8) |
+   95   1                 ((input&0xFF00)>>8);
+   96   1          return temp;
+   97   1      }
+   98          
    99          
-  100          
-  101          WORD RegSw(WORD dat)
-  102          {
-  103   1          //WORD h,l;
-  104   1          //h = (dat >> 8) &0x00FF;
-  105   1          //l = dat & 0x00FF;
-  106   1          //return (l<<8) | h;
-  107   1          return dat;
-  108   1      }
+  100          WORD RegSw(WORD dat)
+  101          {
+  102   1          //WORD h,l;
+  103   1          //h = (dat >> 8) &0x00FF;
+  104   1          //l = dat & 0x00FF;
+  105   1          //return (l<<8) | h;
+  106   1          return dat;
+  107   1      }
+  108          
   109          
-  110          
-  111          // 判断帧的合法性
-  112          BYTE ValidRtuFrame(BYTE *abyRdBuf,BYTE len)
-  113          {
-  114   1          WORD crc;
+  110          // 判断帧的合法性
+  111          BYTE ValidRtuFrame(BYTE *abyRdBuf,BYTE len)
+  112          {
+  113   1          WORD crc;
+  114   1      
   115   1      
-  116   1      
-  117   1          //memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
-  118   1          //memcpy(&ReadAckFrame, abyRdBuf, len);
-  119   1          // 判断CRC
-  120   1          crc = CRC16Calc(abyRdBuf,len);
-  121   1          if (crc != 0)
-  122   1          {
-  123   2              return false;
-  124   2          }
-C251 COMPILER V5.60.0,  ModBus                                                             19/10/23  10:22:02  PAGE 3   
+  116   1          //memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
+  117   1          //memcpy(&ReadAckFrame, abyRdBuf, len);
+  118   1          // 判断CRC
+  119   1      
+  120   1          crc = CRC16Calc(abyRdBuf,len);    
+  121   1          //printf("crc = %x\r\n",crc);
+  122   1          if (crc != 0)
+  123   1          {
+  124   2              return false;
+C251 COMPILER V5.60.0,  ModBus                                                             24/10/23  10:09:03  PAGE 3   
 
-  125   1          
-  126   1          return true;
-  127   1      }
-  128          
+  125   2          }
+  126   1          
+  127   1          return true;
+  128   1      }
   129          
   130          
-  131          // 判断帧的合法性
-  132          BYTE ValidTcpFrame(BYTE *abyRdBuf,BYTE len)
-  133          {
-  134   1          BYTE rlen = 0;
-  135   1      
-  136   1          //memcpy(MbId, abyRdBuf, 2);
-  137   1          //memset(&RecvBuf, 0, sizeof(DEVICE_READ_ACK));
-  138   1          //memcpy(&RecvBuf, &abyRdBuf[6], len);
-  139   1      
-  140   1          rlen = abyRdBuf[5];
-  141   1          if (rlen != len - 6)
-  142   1          {
-  143   2              return false;
-  144   2          }
-  145   1      
-  146   1         
-  147   1          return true;
-  148   1      }
-  149          
+  131          
+  132          // 判断帧的合法性
+  133          BYTE ValidTcpFrame(BYTE *abyRdBuf,BYTE len)
+  134          {
+  135   1          BYTE rlen = 0;
+  136   1      
+  137   1          //memcpy(MbId, abyRdBuf, 2);
+  138   1          //memset(&RecvBuf, 0, sizeof(DEVICE_READ_ACK));
+  139   1          //memcpy(&RecvBuf, &abyRdBuf[6], len);
+  140   1      
+  141   1          rlen = abyRdBuf[5];
+  142   1          if (rlen != len - 6)
+  143   1          {
+  144   2              return false;
+  145   2          }
+  146   1      
+  147   1         
+  148   1          return true;
+  149   1      }
   150          
   151          
+  152          
 
 
 Module Information          Static   Overlayable

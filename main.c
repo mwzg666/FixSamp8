@@ -40,8 +40,8 @@ BYTE g_Output[OUT_IO_COUNT]      = {0,0,0,0,0};   // 上电蓝灯亮 //
 BYTE g_OutStatus[OUT_IO_COUNT]   = {0,0,0,0,0};
 
 BYTE PageSwitch = 0;                                //远程控制界面选择
-//BYTE StartRem[5] = {0,0,0,0,0};
-//BYTE RemFlag[5] = {0,0,0,0,0};
+BYTE StartRem[5] = {0,0,0,0,0};
+BYTE RemFlag[5] = {0,0,0,0,0};
 
 
 u16  Timer0Cnt = 0;
@@ -518,7 +518,7 @@ void WriteParam()
     {
         Error();
     }
-
+    //printf("Write34= OK\r\n");
     EA = 1;     //打开总中断
 }
 
@@ -670,6 +670,7 @@ void UpdataUI()
     BYTE i;
     for (i=0;i<CHANNLE_NUM;i++)
     {
+        //printf("UpData= OK\r\n");
         ChannelAlarm[i] = ((SysParam.Enable & (1<<i)) == 0)?0:1;
     }
     ShowStatus();
@@ -1018,7 +1019,7 @@ void SyncModBusDev()
     BYTE i;
     memset(&ModBusParam, 0, sizeof(MODBUS_PARAM));
     //ModBusParam.AlamrThres = SysParam.AlarmThres;
-    ModBusParam.ChEnable =   SysParam.Enable;
+    ModBusParam.ChEnable =  SysParam.Enable;
 
 //    for (i=0;i<8;i++)
 //    {
@@ -1080,17 +1081,18 @@ BYTE SendRemCtlCmd(BYTE Addr, BYTE Cmd, WORD Reg, WORD Count, BYTE * Data)
         HostSendFrame.Data[0] = Count*2;  // 数据长度
         SendLen ++;
         i++;
-        memcpy(&HostSendFrame.Data[1], Data, Count*2);
+        memcpy(&HostSendFrame.Data[1], Data,Count*2);
         SendLen += Count*2;
-        i+=2;
+        i+=(Count*2);
     }
-    
     // 计算CRC , 并添加到数据后面
     crc = CRC16Calc((BYTE *)&HostSendFrame, SendLen);
     HostSendFrame.Data[i]  = (BYTE)(crc);
     HostSendFrame.Data[i+1] = (BYTE)(crc>>8);
     
     SendLen += 2; 
+
+
     Uart4Send((BYTE *)&HostSendFrame, (BYTE)SendLen);
 
     return true;
@@ -1116,8 +1118,8 @@ void FlowTask()
 //远程控制界面切换
 void RemPageCtl()
 {
-   static BYTE StartRem[5] = {0};
-   static BYTE RemFlag[5] = {0};
+   //static BYTE StartRem[5] = {0};
+   //static BYTE RemFlag[5] = {0};
 
     switch(PageSwitch)
     {
@@ -1270,11 +1272,14 @@ void RemPageCtl()
 //远程控制向从机写
 void RemCtlWrite()
 {
-    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_PARAM_ADD, 3, (BYTE *)&ModBusParam);
+    WORD RegCnt = 3;
+    WORD RegCnt2 = 11;
+    //SyncModBusDev();
     
-    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_STATUS_ADD, 11, (BYTE *)&ModBusStatus);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_PARAM_ADD, RegCnt, (BYTE *)&ModBusParam);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_STATUS_ADD, RegCnt2, (BYTE *)&ModBusStatus);
+    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_INFO_ADD, RegCnt, (BYTE *)&ModBusInfo);
 
-    SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_INFO_ADD, 3, (BYTE *)&ModBusInfo);
 }
 
 
@@ -1282,8 +1287,8 @@ void RemCtlWrite()
 void RemCtlTask()
 {   
 	WORD RegCnt = 3;
+    WORD RegCnt2 = 11;
 	//RemCtlWrite();
-    Delay(100);
 //    if (RunStatus.Running)
 //    {
          if(RemReadflag == 1)
@@ -1291,19 +1296,16 @@ void RemCtlTask()
             RemReadflag = 0;
 
             SendRemCtlCmd(1, CMD_READ_REG, MODBUS_PARAM_ADD, RegCnt, NULL);
-
-            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_STATUS_ADD, 11, NULL);
-
-            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_INFO_ADD, 3, NULL);
-
+            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_STATUS_ADD, RegCnt2, NULL);  
+            SendRemCtlCmd(1, CMD_READ_REG, MODBUS_INFO_ADD, RegCnt, NULL);
 
         }
     //}
+    //RemPageCtl();
 }
 
 void main(void)
 {
-    BYTE i = 0;
     SysInit();
     IoInit();
     PW_MAIN(1);  // 主电源
@@ -1333,7 +1335,7 @@ void main(void)
     Delay(200);
 
     SyncModBusDev();
-    //RemCtlWrite();
+    RemCtlWrite();
     
     
     RUN_LED(0);
@@ -1359,18 +1361,16 @@ void main(void)
     PageSwitch = 0;
     while(1)
     {
-        TimerTask();
         HndInput();
-             
+        TimerTask(); 
+        FlowTask();   
+        RemPageCtl(); 
+        RemCtlWrite();
         Uart1Hnd();
         Uart2Hnd();
-        Uart3Hnd();
-        //RemCtlWrite();
-        RemPageCtl();
-        
-        FlowTask();
-        
+        Uart3Hnd();              
         Uart4Hnd();
+        
         RemCtlTask();
     }
 }

@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 1   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE main
@@ -50,8 +50,8 @@ stmt  level    source
    40          BYTE g_OutStatus[OUT_IO_COUNT]   = {0,0,0,0,0};
    41          
    42          BYTE PageSwitch = 0;                                //远程控制界面选择
-   43          //BYTE StartRem[5] = {0,0,0,0,0};
-   44          //BYTE RemFlag[5] = {0,0,0,0,0};
+   43          BYTE StartRem[5] = {0,0,0,0,0};
+   44          BYTE RemFlag[5] = {0,0,0,0,0};
    45          
    46          
    47          u16  Timer0Cnt = 0;
@@ -66,7 +66,7 @@ stmt  level    source
    56          void DebugMsg(char *msg)
    57          {
    58   1          BYTE len = (BYTE)strlen(msg);
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 2   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 2   
 
    59   1          //Uart1Send((BYTE *)msg,len);
    60   1      }
@@ -134,7 +134,7 @@ stmt  level    source
   122          void SensorInit()
   123          {
   124   1          // P1.0 -- 下降缘中断
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 3   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 3   
 
   125   1          P1IM0 = 0;
   126   1          P1IM1 = 0;
@@ -202,7 +202,7 @@ stmt  level    source
                    }
                    
                }
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 4   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 4   
 
                #endif
   192          
@@ -270,7 +270,7 @@ stmt  level    source
   254   1      }
   255          
   256          void IoCtlTask()
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 5   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 5   
 
   257          {
   258   1          alt_u8 i;
@@ -338,7 +338,7 @@ stmt  level    source
   320          
   321          void TimerTask()
   322          {
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 6   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 6   
 
   323   1          u16 delta = 0;
   324   1          static u16 Time1s = 0;
@@ -406,7 +406,7 @@ stmt  level    source
   386   2              ShowRemCh();
   387   2          }
   388   1      }
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 7   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 7   
 
   389          
   390          
@@ -474,7 +474,7 @@ stmt  level    source
   452                  SysParam.AlmParam[i].CUM_DOSE_RATE_ALARM_2 = 400;
   453                  SysParam.AlmParam[i].INVALID_ALRAM_1 = 8000;
   454                  SysParam.AlmParam[i].INVALID_ALRAM_2 = 10000;
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 8   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 8   
 
   455              }
   456          }
@@ -542,9 +542,9 @@ stmt  level    source
   518   1          {
   519   2              Error();
   520   2          }
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 9   
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 9   
 
-  521   1      
+  521   1          //printf("Write34= OK\r\n");
   522   1          EA = 1;     //打开总中断
   523   1      }
   524          
@@ -610,7 +610,7 @@ stmt  level    source
   584          
   585          /*
   586          void ReportInput()
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 10  
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 10  
 
   587          {
   588              BYTE PwOff = POWER_OFF;
@@ -678,7 +678,7 @@ stmt  level    source
   650   1          SysParam.Enable = 0x1F;
   651   1          SysParam.RemCtlFlag = false;
   652   1      
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 11  
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 11  
 
   653   1          RemRegAddr.SypAddr = MODBUS_PARAM_ADD;
   654   1          RemRegAddr.StuAddr = MODBUS_STATUS_ADD;
@@ -700,695 +700,697 @@ stmt  level    source
   670   1          BYTE i;
   671   1          for (i=0;i<CHANNLE_NUM;i++)
   672   1          {
-  673   2              ChannelAlarm[i] = ((SysParam.Enable & (1<<i)) == 0)?0:1;
-  674   2          }
-  675   1          ShowStatus();
-  676   1          Delay(200);
-  677   1          StatusColor(true);
-  678   1      }
-  679          
-  680          void InitLcd()
-  681          {   
-  682   1          memset(&RunStatus, 0, sizeof(RUN_STATUS));
-  683   1          memset(&RunInfo, 0, sizeof(RUN_INFO));
-  684   1          memset(&RealFlow, 0, sizeof(RealFlow));
-  685   1          
-  686   1          //ParamDef();
-  687   1          ModeHint();
-  688   1          Delay(200);
-  689   1          HideModule(MP_HINT_END);
-  690   1          Delay(200);
-  691   1          UpdataUI();    
-  692   1          Delay(200);
-  693   1          SendParam();
-  694   1          Delay(200);
-  695   1          SetBkLight(false);
-  696   1          Delay(200);
-  697   1          ShowDevInfo();
-  698   1          Delay(200);
-  699   1      }
-  700          
+  673   2              //printf("UpData= OK\r\n");
+  674   2              ChannelAlarm[i] = ((SysParam.Enable & (1<<i)) == 0)?0:1;
+  675   2          }
+  676   1          ShowStatus();
+  677   1          Delay(200);
+  678   1          StatusColor(true);
+  679   1      }
+  680          
+  681          void InitLcd()
+  682          {   
+  683   1          memset(&RunStatus, 0, sizeof(RUN_STATUS));
+  684   1          memset(&RunInfo, 0, sizeof(RUN_INFO));
+  685   1          memset(&RealFlow, 0, sizeof(RealFlow));
+  686   1          
+  687   1          //ParamDef();
+  688   1          ModeHint();
+  689   1          Delay(200);
+  690   1          HideModule(MP_HINT_END);
+  691   1          Delay(200);
+  692   1          UpdataUI();    
+  693   1          Delay(200);
+  694   1          SendParam();
+  695   1          Delay(200);
+  696   1          SetBkLight(false);
+  697   1          Delay(200);
+  698   1          ShowDevInfo();
+  699   1          Delay(200);
+  700   1      }
   701          
-  702          void GetFlow()
-  703          {
-  704   1          BYTE i;
-  705   1          WORD  w;
-  706   1          DWORD d;
-  707   1      
-  708   1          
-  709   1          for (i=0;i<CHANNLE_NUM;i++)
-  710   1          {
-  711   2              if (SysParam.Enable & (1<<i))
-  712   2              {
-  713   3                  RunStatus.Flow[i] = RealFlow[i].val;  // 模拟 -- 实际要从流量计中读取
-  714   3                  w = (WORD)(RunStatus.Flow[i]*10);
-  715   3                  RunInfo.ChFlow[i].Flow = SwWord(w);
-  716   3                  
-  717   3                  RunStatus.Volume[i] =  RealFlow[i].Totol; 
-  718   3                  w = (WORD)(RunStatus.Volume[i]*10);
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 12  
+  702          
+  703          void GetFlow()
+  704          {
+  705   1          BYTE i;
+  706   1          WORD  w;
+  707   1          DWORD d;
+  708   1      
+  709   1          
+  710   1          for (i=0;i<CHANNLE_NUM;i++)
+  711   1          {
+  712   2              if (SysParam.Enable & (1<<i))
+  713   2              {
+  714   3                  RunStatus.Flow[i] = RealFlow[i].val;  // 模拟 -- 实际要从流量计中读取
+  715   3                  w = (WORD)(RunStatus.Flow[i]*10);
+  716   3                  RunInfo.ChFlow[i].Flow = SwWord(w);
+  717   3                  
+  718   3                  RunStatus.Volume[i] =  RealFlow[i].Totol; 
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 12  
 
-  719   3                  RunInfo.ChFlow[i].Vol = SwWord(w);
-  720   3              }
-  721   2          }
-  722   1      
-  723   1          // 总流量
-  724   1          RunStatus.TotleFlow = RealFlow[8].val;
-  725   1          d = (DWORD)(RealFlow[8].val*10);
-  726   1          RunInfo.TotFlow.Flow = SwDWord(d);
-  727   1      
-  728   1          // 总体积
-  729   1          RunStatus.TotleVol = RealFlow[8].Totol;
-  730   1          d = (DWORD)(RealFlow[8].Totol*10);
-  731   1          RunInfo.TotFlow.Vol   = SwDWord(d);
-  732   1      }
-  733          
-  734          void StartSamp()
-  735          {
-  736   1          memset(&RunStatus, 0, sizeof(RUN_STATUS));
-  737   1          memset(&RunInfo, 0, sizeof(RUN_INFO));
-  738   1          memset(&RealFlow, 0, sizeof(RealFlow));
-  739   1          
-  740   1          RunStatus.Running = true;
-  741   1          g_Output[LIGHT_BLUE] = 1;
-  742   1          CheckValve();
-  743   1          OpenPump();
-  744   1          SetStartBtn(0);
-  745   1      
-  746   1      }
-  747          
-  748          void StopSamp(bool Auto)
-  749          {
-  750   1          ClosePump();
-  751   1          memset(RealFlow,0, sizeof(RealFlow));
-  752   1      
-  753   1          RunStatus.Running = false;
-  754   1          g_Output[LIGHT_BLUE] = 0;
-  755   1          
-  756   1          SetStartBtn(1);  // 按钮自动变为“开始”
-  757   1          
-  758   1          if (Auto)  // 自动结束
-  759   1          {
-  760   2              // 显示取样结束提示框
-  761   2              ShowModule(MP_HINT_END, REG_HINT_END);
-  762   2          }
-  763   1      }
-  764          
-  765          // 定时模式
-  766          void TimingMode()
-  767          {
-  768   1          if (RunStatus.RunTime >= ((DWORD)SysParam.SampTime) * 60)
-  769   1          {
-  770   2              StopSamp(true);
-  771   2          }
-  772   1      }
-  773          
+  719   3                  w = (WORD)(RunStatus.Volume[i]*10);
+  720   3                  RunInfo.ChFlow[i].Vol = SwWord(w);
+  721   3              }
+  722   2          }
+  723   1      
+  724   1          // 总流量
+  725   1          RunStatus.TotleFlow = RealFlow[8].val;
+  726   1          d = (DWORD)(RealFlow[8].val*10);
+  727   1          RunInfo.TotFlow.Flow = SwDWord(d);
+  728   1      
+  729   1          // 总体积
+  730   1          RunStatus.TotleVol = RealFlow[8].Totol;
+  731   1          d = (DWORD)(RealFlow[8].Totol*10);
+  732   1          RunInfo.TotFlow.Vol   = SwDWord(d);
+  733   1      }
+  734          
+  735          void StartSamp()
+  736          {
+  737   1          memset(&RunStatus, 0, sizeof(RUN_STATUS));
+  738   1          memset(&RunInfo, 0, sizeof(RUN_INFO));
+  739   1          memset(&RealFlow, 0, sizeof(RealFlow));
+  740   1          
+  741   1          RunStatus.Running = true;
+  742   1          g_Output[LIGHT_BLUE] = 1;
+  743   1          CheckValve();
+  744   1          OpenPump();
+  745   1          SetStartBtn(0);
+  746   1      
+  747   1      }
+  748          
+  749          void StopSamp(bool Auto)
+  750          {
+  751   1          ClosePump();
+  752   1          memset(RealFlow,0, sizeof(RealFlow));
+  753   1      
+  754   1          RunStatus.Running = false;
+  755   1          g_Output[LIGHT_BLUE] = 0;
+  756   1          
+  757   1          SetStartBtn(1);  // 按钮自动变为“开始”
+  758   1          
+  759   1          if (Auto)  // 自动结束
+  760   1          {
+  761   2              // 显示取样结束提示框
+  762   2              ShowModule(MP_HINT_END, REG_HINT_END);
+  763   2          }
+  764   1      }
+  765          
+  766          // 定时模式
+  767          void TimingMode()
+  768          {
+  769   1          if (RunStatus.RunTime >= ((DWORD)SysParam.SampTime) * 60)
+  770   1          {
+  771   2              StopSamp(true);
+  772   2          }
+  773   1      }
   774          
-  775          // 定量模式
-  776          void VolumeMode()
-  777          {
-  778   1          if (RunStatus.TotleVol >= SysParam.SampVol)
-  779   1          {
-  780   2              StopSamp(true);
-  781   2          }
-  782   1      }
-  783          
+  775          
+  776          // 定量模式
+  777          void VolumeMode()
+  778          {
+  779   1          if (RunStatus.TotleVol >= SysParam.SampVol)
+  780   1          {
+  781   2              StopSamp(true);
+  782   2          }
+  783   1      }
   784          
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 13  
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 13  
 
-  785          void RunCheck()
-  786          {
-  787   1          switch (SysParam.SampMode)
-  788   1          {
-  789   2              case MODE_TIME:  TimingMode();  break;
-  790   2              case MODE_VOL:   VolumeMode();  break;
-  791   2          }
-  792   1      }
-  793          
-  794          void AbnorAlaerm()
-  795          {   
-  796   1          BYTE i;
-  797   1          bool HaveAlarm = false;
-  798   1      
-  799   1          
+  785          
+  786          void RunCheck()
+  787          {
+  788   1          switch (SysParam.SampMode)
+  789   1          {
+  790   2              case MODE_TIME:  TimingMode();  break;
+  791   2              case MODE_VOL:   VolumeMode();  break;
+  792   2          }
+  793   1      }
+  794          
+  795          void AbnorAlaerm()
+  796          {   
+  797   1          BYTE i;
+  798   1          bool HaveAlarm = false;
+  799   1      
   800   1          
-  801   1          for(i = 0;i < CHANNLE_NUM;i++)
-  802   1          {
-  803   2              if( (ChannelAlarm[i] == ALM_FLOW_ABNOR) ||
-  804   2                  (ChannelAlarm[i] ==  ALM_FLOW_LOW) || 
-  805   2                  (ChannelAlarm[i] == ALM_FLOW_HIGH)  )
-  806   2              {
-  807   3                  HaveAlarm = true;
-  808   3                  break;
-  809   3              }
-  810   2          }
-  811   1      
-  812   1          if (HaveAlarm)
-  813   1          {
-  814   2              g_Output[LIGHT_YELLOW] = 1;
-  815   2              g_Output[ALARM_SOUND] = 2;
-  816   2          }
-  817   1          else
-  818   1          {
-  819   2              g_Output[LIGHT_YELLOW] = 0;
-  820   2              g_Output[ALARM_SOUND] = 0;
-  821   2          }
-  822   1      }
-  823          void CheckAlarm()
-  824          {
-  825   1          BYTE i;
-  826   1          float flow;
-  827   1          
-  828   1          for (i=0;i<CHANNLE_NUM;i++)
-  829   1          {
-  830   2              if (SysParam.Enable & (1<<i))
-  831   2              {
-  832   3                  flow = RunStatus.Flow[i];
-  833   3                  if (flow > SysParam.SampFlow[i]*(100+SysParam.AlarmThres)/100)
-  834   3                  {
-  835   4                      ChannelAlarm[i] = ALM_FLOW_HIGH;
-  836   4                  }
-  837   3                  else if (flow < SysParam.SampFlow[i]*(100-SysParam.AlarmThres)/100)
-  838   3                  {
-  839   4                      ChannelAlarm[i] = ALM_FLOW_LOW;
-  840   4                  }
-  841   3                  else
-  842   3                  {
-  843   4                      ChannelAlarm[i] = ALM_FLOW_NOR;
-  844   4                  }
-  845   3              }
-  846   2              else
-  847   2              {
-  848   3                  ChannelAlarm[i] = ALM_CH_DISABLE;
-  849   3              }
-  850   2              
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 14  
+  801   1          
+  802   1          for(i = 0;i < CHANNLE_NUM;i++)
+  803   1          {
+  804   2              if( (ChannelAlarm[i] == ALM_FLOW_ABNOR) ||
+  805   2                  (ChannelAlarm[i] ==  ALM_FLOW_LOW) || 
+  806   2                  (ChannelAlarm[i] == ALM_FLOW_HIGH)  )
+  807   2              {
+  808   3                  HaveAlarm = true;
+  809   3                  break;
+  810   3              }
+  811   2          }
+  812   1      
+  813   1          if (HaveAlarm)
+  814   1          {
+  815   2              g_Output[LIGHT_YELLOW] = 1;
+  816   2              g_Output[ALARM_SOUND] = 2;
+  817   2          }
+  818   1          else
+  819   1          {
+  820   2              g_Output[LIGHT_YELLOW] = 0;
+  821   2              g_Output[ALARM_SOUND] = 0;
+  822   2          }
+  823   1      }
+  824          void CheckAlarm()
+  825          {
+  826   1          BYTE i;
+  827   1          float flow;
+  828   1          
+  829   1          for (i=0;i<CHANNLE_NUM;i++)
+  830   1          {
+  831   2              if (SysParam.Enable & (1<<i))
+  832   2              {
+  833   3                  flow = RunStatus.Flow[i];
+  834   3                  if (flow > SysParam.SampFlow[i]*(100+SysParam.AlarmThres)/100)
+  835   3                  {
+  836   4                      ChannelAlarm[i] = ALM_FLOW_HIGH;
+  837   4                  }
+  838   3                  else if (flow < SysParam.SampFlow[i]*(100-SysParam.AlarmThres)/100)
+  839   3                  {
+  840   4                      ChannelAlarm[i] = ALM_FLOW_LOW;
+  841   4                  }
+  842   3                  else
+  843   3                  {
+  844   4                      ChannelAlarm[i] = ALM_FLOW_NOR;
+  845   4                  }
+  846   3              }
+  847   2              else
+  848   2              {
+  849   3                  ChannelAlarm[i] = ALM_CH_DISABLE;
+  850   3              }
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 14  
 
-  851   2              if( (ChannelError[i] > 3) && (ChannelAlarm[i] != ALM_CH_DISABLE) )
-  852   2              {
-  853   3                  ChannelAlarm[i] = ALM_FLOW_ABNOR;
-  854   3              }
-  855   2          }
-  856   1      
-  857   1          if (memcmp(HisAlarm,ChannelAlarm,CHANNLE_NUM) != 0)
-  858   1          {
-  859   2              // 报警有变化才更新界面
-  860   2              Delay(200);
-  861   2              ShowStatus();
-  862   2              Delay(200);
-  863   2              AbnorAlaerm();
-  864   2              StatusColor(false);
-  865   2      
-  866   2              memcpy(HisAlarm,ChannelAlarm,8);
-  867   2          }
-  868   1      }
-  869          
-  870          // 1秒运行一次
-  871          void DevRun()
-  872          {
-  873   1          RunStatus.RunTime ++;
-  874   1          
-  875   1          // 1. 获取流量
-  876   1          GetFlow();
-  877   1      
-  878   1          // 2. 显示流量和状态
-  879   1          ShowFlow();
-  880   1          //Delay(200);
-  881   1          
-  882   1          // 3. 检查报警状态  
-  883   1          if (RunStatus.RunTime > 10)
-  884   1          {
-  885   2              // 运行时间大于10秒才检测
-  886   2              CheckAlarm();
-  887   2          }
-  888   1          
-  889   1          // 4. 根据模式判断是否结束取样
-  890   1          RunCheck();
-  891   1      }
-  892          
+  851   2              
+  852   2              if( (ChannelError[i] > 3) && (ChannelAlarm[i] != ALM_CH_DISABLE) )
+  853   2              {
+  854   3                  ChannelAlarm[i] = ALM_FLOW_ABNOR;
+  855   3              }
+  856   2          }
+  857   1      
+  858   1          if (memcmp(HisAlarm,ChannelAlarm,CHANNLE_NUM) != 0)
+  859   1          {
+  860   2              // 报警有变化才更新界面
+  861   2              Delay(200);
+  862   2              ShowStatus();
+  863   2              Delay(200);
+  864   2              AbnorAlaerm();
+  865   2              StatusColor(false);
+  866   2      
+  867   2              memcpy(HisAlarm,ChannelAlarm,8);
+  868   2          }
+  869   1      }
+  870          
+  871          // 1秒运行一次
+  872          void DevRun()
+  873          {
+  874   1          RunStatus.RunTime ++;
+  875   1          
+  876   1          // 1. 获取流量
+  877   1          GetFlow();
+  878   1      
+  879   1          // 2. 显示流量和状态
+  880   1          ShowFlow();
+  881   1          //Delay(200);
+  882   1          
+  883   1          // 3. 检查报警状态  
+  884   1          if (RunStatus.RunTime > 10)
+  885   1          {
+  886   2              // 运行时间大于10秒才检测
+  887   2              CheckAlarm();
+  888   2          }
+  889   1          
+  890   1          // 4. 根据模式判断是否结束取样
+  891   1          RunCheck();
+  892   1      }
   893          
-  894          //获取电磁阀状态
-  895          void GetValve()
-  896          {
-  897   1          BYTE i;
-  898   1          for(i = 0;i<CHANNLE_NUM;i++)
-  899   1          {
-  900   2              if(SysParam.Enable & (1<<i))
-  901   2              {
-  902   3                  RemChStatus[i] = 1;
-  903   3                 //SysParam.Valve[i] = 1;
-  904   3              }
-  905   2              else
-  906   2              {
-  907   3                  RemChStatus[i] = 0;
-  908   3      //           SysParam.Valve[i] = 0;
-  909   3              }
-  910   2          }
-  911   1      
-  912   1      }
-  913          
-  914          //查询电磁阀状态
-  915          void CheckValve()
-  916          {
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 15  
+  894          
+  895          //获取电磁阀状态
+  896          void GetValve()
+  897          {
+  898   1          BYTE i;
+  899   1          for(i = 0;i<CHANNLE_NUM;i++)
+  900   1          {
+  901   2              if(SysParam.Enable & (1<<i))
+  902   2              {
+  903   3                  RemChStatus[i] = 1;
+  904   3                 //SysParam.Valve[i] = 1;
+  905   3              }
+  906   2              else
+  907   2              {
+  908   3                  RemChStatus[i] = 0;
+  909   3      //           SysParam.Valve[i] = 0;
+  910   3              }
+  911   2          }
+  912   1      
+  913   1      }
+  914          
+  915          //查询电磁阀状态
+  916          void CheckValve()
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 15  
 
-  917   1          BYTE i;
-  918   1          for(i = 0;i<CHANNLE_NUM;i++)
-  919   1          {
-  920   2              if(RemChStatus[i])//(SysParam.Valve[i])
-  921   2              {
-  922   3                  switch(i)
-  923   3                  {
-  924   4                      case 0 : VALVE0(1); break;
-  925   4                      case 1 : VALVE1(1); break;
-  926   4                      case 2 : VALVE2(1); break;
-  927   4                      case 3 : VALVE3(1); break;
-  928   4                      case 4 : VALVE4(1); break;
-  929   4                      case 5 : VALVE5(1); break;
-  930   4                      case 6 : VALVE6(1); break;
-  931   4                      case 7 : VALVE7(1); break;  
-  932   4                  }
-  933   3              }
-  934   2              else
-  935   2              {
-  936   3                  switch(i)
-  937   3                  {
-  938   4                      case 0 : VALVE0(0); break;
-  939   4                      case 1 : VALVE1(0); break;
-  940   4                      case 2 : VALVE2(0); break;
-  941   4                      case 3 : VALVE3(0); break;
-  942   4                      case 4 : VALVE4(0); break;
-  943   4                      case 5 : VALVE5(0); break;
-  944   4                      case 6 : VALVE6(0); break;
-  945   4                      case 7 : VALVE7(0); break;  
-  946   4                  }
-  947   3              }
-  948   2          }
-  949   1          Delay(20);
-  950   1      }
-  951          
-  952          //关闭电磁阀
-  953          void CloseValve()
-  954          {
-  955   1          VALVE0(0);
-  956   1          VALVE1(0);
-  957   1          VALVE2(0);
-  958   1          VALVE3(0);
-  959   1          VALVE4(0);
-  960   1          VALVE5(0);
-  961   1          VALVE6(0);
-  962   1          VALVE7(0);
-  963   1          Delay(20);
-  964   1      }
-  965          // 开启气泵
-  966          void OpenPump()
-  967          {
-  968   1          //BUMP_M(1);
-  969   1          g_Output[GAS_BUMP] = 1;
-  970   1      }
-  971          
+  917          {
+  918   1          BYTE i;
+  919   1          for(i = 0;i<CHANNLE_NUM;i++)
+  920   1          {
+  921   2              if(RemChStatus[i])//(SysParam.Valve[i])
+  922   2              {
+  923   3                  switch(i)
+  924   3                  {
+  925   4                      case 0 : VALVE0(1); break;
+  926   4                      case 1 : VALVE1(1); break;
+  927   4                      case 2 : VALVE2(1); break;
+  928   4                      case 3 : VALVE3(1); break;
+  929   4                      case 4 : VALVE4(1); break;
+  930   4                      case 5 : VALVE5(1); break;
+  931   4                      case 6 : VALVE6(1); break;
+  932   4                      case 7 : VALVE7(1); break;  
+  933   4                  }
+  934   3              }
+  935   2              else
+  936   2              {
+  937   3                  switch(i)
+  938   3                  {
+  939   4                      case 0 : VALVE0(0); break;
+  940   4                      case 1 : VALVE1(0); break;
+  941   4                      case 2 : VALVE2(0); break;
+  942   4                      case 3 : VALVE3(0); break;
+  943   4                      case 4 : VALVE4(0); break;
+  944   4                      case 5 : VALVE5(0); break;
+  945   4                      case 6 : VALVE6(0); break;
+  946   4                      case 7 : VALVE7(0); break;  
+  947   4                  }
+  948   3              }
+  949   2          }
+  950   1          Delay(20);
+  951   1      }
+  952          
+  953          //关闭电磁阀
+  954          void CloseValve()
+  955          {
+  956   1          VALVE0(0);
+  957   1          VALVE1(0);
+  958   1          VALVE2(0);
+  959   1          VALVE3(0);
+  960   1          VALVE4(0);
+  961   1          VALVE5(0);
+  962   1          VALVE6(0);
+  963   1          VALVE7(0);
+  964   1          Delay(20);
+  965   1      }
+  966          // 开启气泵
+  967          void OpenPump()
+  968          {
+  969   1          //BUMP_M(1);
+  970   1          g_Output[GAS_BUMP] = 1;
+  971   1      }
   972          
-  973          // 停止气泵
-  974          void ClosePump()
-  975          {
-  976   1          //BUMP_M(0);
-  977   1          CloseValve();
-  978   1          g_Output[GAS_BUMP] = 0;
-  979   1      }
-  980          
-  981          void SendReadFlowCmd(BYTE ch)
-  982          {
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 16  
+  973          
+  974          // 停止气泵
+  975          void ClosePump()
+  976          {
+  977   1          //BUMP_M(0);
+  978   1          CloseValve();
+  979   1          g_Output[GAS_BUMP] = 0;
+  980   1      }
+  981          
+  982          void SendReadFlowCmd(BYTE ch)
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 16  
 
-  983   1          ChannelError[ch-1] ++;
-  984   1          SendReadFlow(ch);    
-  985   1      }
-  986          
-  987          WORD GetAlarm(BYTE i)
-  988          {
-  989   1          //BYTE i;
-  990   1      
-  991   1      //    for (i=0;i<8;i++)
-  992   1      //    {
-  993   1              if(ChannelAlarm[i] == ALM_CH_DISABLE)
-  994   1              {
-  995   2                  return ALM_CH_DISABLE;
-  996   2              }
-  997   1              if (ChannelAlarm[i] ==  ALM_FLOW_ABNOR)
-  998   1              {
-  999   2                  return ALM_FLOW_ABNOR;
- 1000   2              }
- 1001   1              
- 1002   1              if (ChannelAlarm[i] ==  ALM_FLOW_HIGH)
- 1003   1              {
- 1004   2                  return ALM_FLOW_HIGH;
- 1005   2              }
- 1006   1      
- 1007   1              if (ChannelAlarm[i] ==  ALM_FLOW_LOW)
- 1008   1              {
- 1009   2                  return ALM_FLOW_LOW;
- 1010   2              }
- 1011   1          //}
- 1012   1      
- 1013   1          return ALM_FLOW_NOR;
- 1014   1      }
- 1015          
- 1016          void SyncModBusDev()
- 1017          {
- 1018   1          BYTE i;
- 1019   1          memset(&ModBusParam, 0, sizeof(MODBUS_PARAM));
- 1020   1          //ModBusParam.AlamrThres = SysParam.AlarmThres;
- 1021   1          ModBusParam.ChEnable =   SysParam.Enable;
- 1022   1      
- 1023   1      //    for (i=0;i<8;i++)
- 1024   1      //    {
- 1025   1      //        ModBusParam.ChFlow[i] = (WORD)(SysParam.SampFlow[i]);
- 1026   1      //        //ModBusParam.ChValve[i] = SysParam.Valve[i];
- 1027   1      //    }
- 1028   1      //    ModBusParam.SampFlow = SysParam.SampVol;
- 1029   1      //    ModBusParam.SampMode = SysParam.SampMode;
- 1030   1      //    ModBusParam.SampTime = SysParam.SampTime;
- 1031   1      //    ModBusParam.SampVol = SysParam.SampVol;
- 1032   1          ModBusParam.RemCtlFlag = SysParam.RemCtlFlag;
- 1033   1          ModBusParam.Addr = RemRegAddr.SypAddr;
- 1034   1          memset(&ModBusStatus, 0, sizeof(MODBUS_STATUS));
- 1035   1      //    ModBusStatus.TotleTime = SysParam.TotleTime;
- 1036   1      //    ModBusStatus.TotleVol = SysParam.TotleFlow;
- 1037   1      
- 1038   1      //    ModBusStatus.SampleFlow = RunStatus.TotleFlow;
- 1039   1      //    ModBusStatus.SampleVol = RunStatus.TotleVol;
- 1040   1          for(i = 0;i < 8;i++)
- 1041   1          {
- 1042   2              ModBusStatus.Alarm[i] = GetAlarm(i);
- 1043   2          }
- 1044   1      
- 1045   1      //    ModBusStatus.RemTime = ((DWORD)SysParam.SampTime) * 60 - RunStatus.RunTime;
- 1046   1      //    ModBusStatus.RunTime = RunStatus.RunTime;
- 1047   1          ModBusStatus.RunStatus = RunStatus.Running;
- 1048   1          ModBusStatus.Addr = RemRegAddr.StuAddr;
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 17  
+  983          {
+  984   1          ChannelError[ch-1] ++;
+  985   1          SendReadFlow(ch);    
+  986   1      }
+  987          
+  988          WORD GetAlarm(BYTE i)
+  989          {
+  990   1          //BYTE i;
+  991   1      
+  992   1      //    for (i=0;i<8;i++)
+  993   1      //    {
+  994   1              if(ChannelAlarm[i] == ALM_CH_DISABLE)
+  995   1              {
+  996   2                  return ALM_CH_DISABLE;
+  997   2              }
+  998   1              if (ChannelAlarm[i] ==  ALM_FLOW_ABNOR)
+  999   1              {
+ 1000   2                  return ALM_FLOW_ABNOR;
+ 1001   2              }
+ 1002   1              
+ 1003   1              if (ChannelAlarm[i] ==  ALM_FLOW_HIGH)
+ 1004   1              {
+ 1005   2                  return ALM_FLOW_HIGH;
+ 1006   2              }
+ 1007   1      
+ 1008   1              if (ChannelAlarm[i] ==  ALM_FLOW_LOW)
+ 1009   1              {
+ 1010   2                  return ALM_FLOW_LOW;
+ 1011   2              }
+ 1012   1          //}
+ 1013   1      
+ 1014   1          return ALM_FLOW_NOR;
+ 1015   1      }
+ 1016          
+ 1017          void SyncModBusDev()
+ 1018          {
+ 1019   1          BYTE i;
+ 1020   1          memset(&ModBusParam, 0, sizeof(MODBUS_PARAM));
+ 1021   1          //ModBusParam.AlamrThres = SysParam.AlarmThres;
+ 1022   1          ModBusParam.ChEnable =  SysParam.Enable;
+ 1023   1      
+ 1024   1      //    for (i=0;i<8;i++)
+ 1025   1      //    {
+ 1026   1      //        ModBusParam.ChFlow[i] = (WORD)(SysParam.SampFlow[i]);
+ 1027   1      //        //ModBusParam.ChValve[i] = SysParam.Valve[i];
+ 1028   1      //    }
+ 1029   1      //    ModBusParam.SampFlow = SysParam.SampVol;
+ 1030   1      //    ModBusParam.SampMode = SysParam.SampMode;
+ 1031   1      //    ModBusParam.SampTime = SysParam.SampTime;
+ 1032   1      //    ModBusParam.SampVol = SysParam.SampVol;
+ 1033   1          ModBusParam.RemCtlFlag = SysParam.RemCtlFlag;
+ 1034   1          ModBusParam.Addr = RemRegAddr.SypAddr;
+ 1035   1          memset(&ModBusStatus, 0, sizeof(MODBUS_STATUS));
+ 1036   1      //    ModBusStatus.TotleTime = SysParam.TotleTime;
+ 1037   1      //    ModBusStatus.TotleVol = SysParam.TotleFlow;
+ 1038   1      
+ 1039   1      //    ModBusStatus.SampleFlow = RunStatus.TotleFlow;
+ 1040   1      //    ModBusStatus.SampleVol = RunStatus.TotleVol;
+ 1041   1          for(i = 0;i < 8;i++)
+ 1042   1          {
+ 1043   2              ModBusStatus.Alarm[i] = GetAlarm(i);
+ 1044   2          }
+ 1045   1      
+ 1046   1      //    ModBusStatus.RemTime = ((DWORD)SysParam.SampTime) * 60 - RunStatus.RunTime;
+ 1047   1      //    ModBusStatus.RunTime = RunStatus.RunTime;
+ 1048   1          ModBusStatus.RunStatus = RunStatus.Running;
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 17  
 
- 1049   1      //    for (i=0;i<8;i++)
- 1050   1      //    {
- 1051   1      //        ModBusStatus.ChFlow[i] = (WORD)(RunStatus.Flow[i]);
- 1052   1      //        ModBusStatus.ChVol[i] = (WORD)(RunStatus.Volume[i]);
- 1053   1      //    }
- 1054   1      
- 1055   1          memset(&ModBusInfo, 0, sizeof(MODBUS_INFO));
- 1056   1          ModBusInfo.Address = SysParam.Address;
- 1057   1          ModBusInfo.Version = VERSION;
- 1058   1          ModBusInfo.Addr = RemRegAddr.InfoAddr;
- 1059   1          
- 1060   1      }
- 1061          
- 1062          //远程控制读写命令处理
- 1063          BYTE SendRemCtlCmd(BYTE Addr, BYTE Cmd, WORD Reg, WORD Count, BYTE * Data)
- 1064          {
- 1065   1         
- 1066   1          WORD i = 0;
- 1067   1          WORD crc, SendLen;
- 1068   1      
- 1069   1          memset(&HostSendFrame, 0, sizeof(HOST_SEND_FRAME));
- 1070   1          
- 1071   1          HostSendFrame.Address = Addr; 
- 1072   1          HostSendFrame.FunctionCode = Cmd;
- 1073   1          HostSendFrame.RegAddr = RegSw(Reg);
- 1074   1          HostSendFrame.RegCount =  RegSw(Count);
- 1075   1      
- 1076   1          SendLen = 6;
- 1077   1      
- 1078   1          if (((Count*2) > 0) && (Data != NULL))
- 1079   1          {
- 1080   2              HostSendFrame.Data[0] = Count*2;  // 数据长度
- 1081   2              SendLen ++;
- 1082   2              i++;
- 1083   2              memcpy(&HostSendFrame.Data[1], Data, Count*2);
- 1084   2              SendLen += Count*2;
- 1085   2              i+=2;
- 1086   2          }
- 1087   1          
+ 1049   1          ModBusStatus.Addr = RemRegAddr.StuAddr;
+ 1050   1      //    for (i=0;i<8;i++)
+ 1051   1      //    {
+ 1052   1      //        ModBusStatus.ChFlow[i] = (WORD)(RunStatus.Flow[i]);
+ 1053   1      //        ModBusStatus.ChVol[i] = (WORD)(RunStatus.Volume[i]);
+ 1054   1      //    }
+ 1055   1      
+ 1056   1          memset(&ModBusInfo, 0, sizeof(MODBUS_INFO));
+ 1057   1          ModBusInfo.Address = SysParam.Address;
+ 1058   1          ModBusInfo.Version = VERSION;
+ 1059   1          ModBusInfo.Addr = RemRegAddr.InfoAddr;
+ 1060   1          
+ 1061   1      }
+ 1062          
+ 1063          //远程控制读写命令处理
+ 1064          BYTE SendRemCtlCmd(BYTE Addr, BYTE Cmd, WORD Reg, WORD Count, BYTE * Data)
+ 1065          {
+ 1066   1         
+ 1067   1          WORD i = 0;
+ 1068   1          WORD crc, SendLen;
+ 1069   1      
+ 1070   1          memset(&HostSendFrame, 0, sizeof(HOST_SEND_FRAME));
+ 1071   1          
+ 1072   1          HostSendFrame.Address = Addr; 
+ 1073   1          HostSendFrame.FunctionCode = Cmd;
+ 1074   1          HostSendFrame.RegAddr = RegSw(Reg);
+ 1075   1          HostSendFrame.RegCount =  RegSw(Count);
+ 1076   1      
+ 1077   1          SendLen = 6;
+ 1078   1      
+ 1079   1          if (((Count*2) > 0) && (Data != NULL))
+ 1080   1          {
+ 1081   2              HostSendFrame.Data[0] = Count*2;  // 数据长度
+ 1082   2              SendLen ++;
+ 1083   2              i++;
+ 1084   2              memcpy(&HostSendFrame.Data[1], Data,Count*2);
+ 1085   2              SendLen += Count*2;
+ 1086   2              i+=(Count*2);
+ 1087   2          }
  1088   1          // 计算CRC , 并添加到数据后面
  1089   1          crc = CRC16Calc((BYTE *)&HostSendFrame, SendLen);
  1090   1          HostSendFrame.Data[i]  = (BYTE)(crc);
  1091   1          HostSendFrame.Data[i+1] = (BYTE)(crc>>8);
  1092   1          
  1093   1          SendLen += 2; 
- 1094   1          Uart4Send((BYTE *)&HostSendFrame, (BYTE)SendLen);
+ 1094   1      
  1095   1      
- 1096   1          return true;
- 1097   1      }
- 1098          
- 1099          void FlowTask()
- 1100          {
- 1101   1          if (RunStatus.Running)
- 1102   1          {
- 1103   2              if(SendFlowFlag == 1)
- 1104   2              {
- 1105   3                  SendFlowFlag = 0;
- 1106   3                  SendReadFlowCmd(ChNum++);
- 1107   3              }
- 1108   2              
- 1109   2              if (ChNum>9)
- 1110   2              {
- 1111   3                  ChNum = 1;
- 1112   3              }
- 1113   2          }
- 1114   1      }
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 18  
+ 1096   1          Uart4Send((BYTE *)&HostSendFrame, (BYTE)SendLen);
+ 1097   1      
+ 1098   1          return true;
+ 1099   1      }
+ 1100          
+ 1101          void FlowTask()
+ 1102          {
+ 1103   1          if (RunStatus.Running)
+ 1104   1          {
+ 1105   2              if(SendFlowFlag == 1)
+ 1106   2              {
+ 1107   3                  SendFlowFlag = 0;
+ 1108   3                  SendReadFlowCmd(ChNum++);
+ 1109   3              }
+ 1110   2              
+ 1111   2              if (ChNum>9)
+ 1112   2              {
+ 1113   3                  ChNum = 1;
+ 1114   3              }
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 18  
 
- 1115          
- 1116          //远程控制界面切换
- 1117          void RemPageCtl()
- 1118          {
- 1119   1         static BYTE StartRem[5] = {0};
- 1120   1         static BYTE RemFlag[5] = {0};
- 1121   1      
- 1122   1          switch(PageSwitch)
- 1123   1          {
- 1124   2              case 0:
- 1125   2              {
- 1126   3                  if(RunStatus.Running)
- 1127   3                  {
- 1128   4                      if(SysParam.RemCtlFlag)
- 1129   4                      {
- 1130   5                          if(!RemFlag[4])
- 1131   5                          {
- 1132   6                              RemFlag[4] = 1;
- 1133   6                              StartRem[4]++;
- 1134   6                              EnterPage(PAGE_REM);
- 1135   6                             
- 1136   6                          }
- 1137   5                      }
- 1138   4                      else
- 1139   4                      {
- 1140   5                          if(StartRem[4] != 0)
- 1141   5                          {
- 1142   6                              RemFlag[4]  = 0; 
- 1143   6                              SendParam();
- 1144   6                              ModeHint(); 
- 1145   6                              CheckAlarm();
- 1146   6                              EnterPage(PAGE_MAIN);
- 1147   6                              StartRem[4] = 0;
- 1148   6                          }
- 1149   5                      }
- 1150   4                  }
- 1151   3                  else
- 1152   3                  {
- 1153   4                       if(SysParam.RemCtlFlag)
- 1154   4                      {
- 1155   5                          if(!RemFlag[0])
- 1156   5                          {
- 1157   6                              RemFlag[0] = 1;
- 1158   6                              StartRem[0]++;
- 1159   6                              EnterPage(PAGE_REM);
- 1160   6                             
- 1161   6                          }
- 1162   5                      }
- 1163   4                      else
- 1164   4                      {
- 1165   5                          if(StartRem[0] != 0)
- 1166   5                          {
- 1167   6                              RemFlag[0]  = 0; 
- 1168   6                              SendParam();
- 1169   6                              ModeHint(); 
- 1170   6                              EnterPage(PAGE_START);
- 1171   6                              StartRem[0] = 0;
- 1172   6                          }
- 1173   5                      }
- 1174   4                      break;
- 1175   4                  }
- 1176   3              }
- 1177   2              
- 1178   2              case 1:
- 1179   2              {
- 1180   3                  if(SysParam.RemCtlFlag)
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 19  
+ 1115   2          }
+ 1116   1      }
+ 1117          
+ 1118          //远程控制界面切换
+ 1119          void RemPageCtl()
+ 1120          {
+ 1121   1         //static BYTE StartRem[5] = {0};
+ 1122   1         //static BYTE RemFlag[5] = {0};
+ 1123   1      
+ 1124   1          switch(PageSwitch)
+ 1125   1          {
+ 1126   2              case 0:
+ 1127   2              {
+ 1128   3                  if(RunStatus.Running)
+ 1129   3                  {
+ 1130   4                      if(SysParam.RemCtlFlag)
+ 1131   4                      {
+ 1132   5                          if(!RemFlag[4])
+ 1133   5                          {
+ 1134   6                              RemFlag[4] = 1;
+ 1135   6                              StartRem[4]++;
+ 1136   6                              EnterPage(PAGE_REM);
+ 1137   6                             
+ 1138   6                          }
+ 1139   5                      }
+ 1140   4                      else
+ 1141   4                      {
+ 1142   5                          if(StartRem[4] != 0)
+ 1143   5                          {
+ 1144   6                              RemFlag[4]  = 0; 
+ 1145   6                              SendParam();
+ 1146   6                              ModeHint(); 
+ 1147   6                              CheckAlarm();
+ 1148   6                              EnterPage(PAGE_MAIN);
+ 1149   6                              StartRem[4] = 0;
+ 1150   6                          }
+ 1151   5                      }
+ 1152   4                  }
+ 1153   3                  else
+ 1154   3                  {
+ 1155   4                       if(SysParam.RemCtlFlag)
+ 1156   4                      {
+ 1157   5                          if(!RemFlag[0])
+ 1158   5                          {
+ 1159   6                              RemFlag[0] = 1;
+ 1160   6                              StartRem[0]++;
+ 1161   6                              EnterPage(PAGE_REM);
+ 1162   6                             
+ 1163   6                          }
+ 1164   5                      }
+ 1165   4                      else
+ 1166   4                      {
+ 1167   5                          if(StartRem[0] != 0)
+ 1168   5                          {
+ 1169   6                              RemFlag[0]  = 0; 
+ 1170   6                              SendParam();
+ 1171   6                              ModeHint(); 
+ 1172   6                              EnterPage(PAGE_START);
+ 1173   6                              StartRem[0] = 0;
+ 1174   6                          }
+ 1175   5                      }
+ 1176   4                      break;
+ 1177   4                  }
+ 1178   3              }
+ 1179   2              
+ 1180   2              case 1:
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 19  
 
- 1181   3                  {
- 1182   4                       if(!RemFlag[1])
- 1183   4                      {
- 1184   5                          RemFlag[1] = 1;
- 1185   5                          StartRem[1]++;
- 1186   5                          EnterPage(PAGE_REM);
- 1187   5                          
- 1188   5                       }
- 1189   4                  }
- 1190   3                  else
- 1191   3                  {
- 1192   4                       if(StartRem[1] != 0)
- 1193   4                      {
- 1194   5                          
- 1195   5                          RemFlag[1] = 0;
- 1196   5                          if(RunStatus.Running)
- 1197   5                          {
- 1198   6                              SendParam();
- 1199   6                              ModeHint(); 
- 1200   6                              CheckAlarm();
- 1201   6                              EnterPage(PAGE_MAIN);
- 1202   6                          }
- 1203   5                          else
- 1204   5                          {
- 1205   6                              SendParam();
- 1206   6                              ModeHint(); 
- 1207   6                              UpdataUI();
- 1208   6                              EnterPage(PAGE_MAIN);
- 1209   6                          }
- 1210   5                          StartRem[1] = 0;
- 1211   5                       }
- 1212   4                  }
- 1213   3                  break;
- 1214   3              }
- 1215   2              
- 1216   2               case 2:
- 1217   2              {
- 1218   3                  if(SysParam.RemCtlFlag)
- 1219   3                  {
- 1220   4                       if(!RemFlag[2])
- 1221   4                      {
- 1222   5                          RemFlag[2] = 1;
- 1223   5                          StartRem[2]++;
- 1224   5                          EnterPage(PAGE_REM);
- 1225   5                         
- 1226   5                       }
- 1227   4                  }
- 1228   3                  else
- 1229   3                  {
- 1230   4                       if(StartRem[2] != 0)
- 1231   4                      {
- 1232   5                          RemFlag[2] = 0;
- 1233   5                          SendParam();
- 1234   5                          ModeHint(); 
- 1235   5                          EnterPage(PAGE_SET);
- 1236   5                          StartRem[2] = 0;
- 1237   5                       }
- 1238   4                  }
- 1239   3                  break;
- 1240   3              }
- 1241   2               
- 1242   2               case 3:
- 1243   2              {
- 1244   3                  if(SysParam.RemCtlFlag)
- 1245   3                  {
- 1246   4                       if(!RemFlag[3])
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 20  
+ 1181   2              {
+ 1182   3                  if(SysParam.RemCtlFlag)
+ 1183   3                  {
+ 1184   4                       if(!RemFlag[1])
+ 1185   4                      {
+ 1186   5                          RemFlag[1] = 1;
+ 1187   5                          StartRem[1]++;
+ 1188   5                          EnterPage(PAGE_REM);
+ 1189   5                          
+ 1190   5                       }
+ 1191   4                  }
+ 1192   3                  else
+ 1193   3                  {
+ 1194   4                       if(StartRem[1] != 0)
+ 1195   4                      {
+ 1196   5                          
+ 1197   5                          RemFlag[1] = 0;
+ 1198   5                          if(RunStatus.Running)
+ 1199   5                          {
+ 1200   6                              SendParam();
+ 1201   6                              ModeHint(); 
+ 1202   6                              CheckAlarm();
+ 1203   6                              EnterPage(PAGE_MAIN);
+ 1204   6                          }
+ 1205   5                          else
+ 1206   5                          {
+ 1207   6                              SendParam();
+ 1208   6                              ModeHint(); 
+ 1209   6                              UpdataUI();
+ 1210   6                              EnterPage(PAGE_MAIN);
+ 1211   6                          }
+ 1212   5                          StartRem[1] = 0;
+ 1213   5                       }
+ 1214   4                  }
+ 1215   3                  break;
+ 1216   3              }
+ 1217   2              
+ 1218   2               case 2:
+ 1219   2              {
+ 1220   3                  if(SysParam.RemCtlFlag)
+ 1221   3                  {
+ 1222   4                       if(!RemFlag[2])
+ 1223   4                      {
+ 1224   5                          RemFlag[2] = 1;
+ 1225   5                          StartRem[2]++;
+ 1226   5                          EnterPage(PAGE_REM);
+ 1227   5                         
+ 1228   5                       }
+ 1229   4                  }
+ 1230   3                  else
+ 1231   3                  {
+ 1232   4                       if(StartRem[2] != 0)
+ 1233   4                      {
+ 1234   5                          RemFlag[2] = 0;
+ 1235   5                          SendParam();
+ 1236   5                          ModeHint(); 
+ 1237   5                          EnterPage(PAGE_SET);
+ 1238   5                          StartRem[2] = 0;
+ 1239   5                       }
+ 1240   4                  }
+ 1241   3                  break;
+ 1242   3              }
+ 1243   2               
+ 1244   2               case 3:
+ 1245   2              {
+ 1246   3                  if(SysParam.RemCtlFlag)
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 20  
 
- 1247   4                      {
- 1248   5                          RemFlag[3] = 1;
- 1249   5                          StartRem[3]++;
- 1250   5                          EnterPage(PAGE_REM);
- 1251   5                          
- 1252   5                       }
- 1253   4                  }
- 1254   3                  else
- 1255   3                  {
- 1256   4                       if(StartRem[3] != 0)
- 1257   4                      {
- 1258   5                          RemFlag[3] = 0;
- 1259   5                          SendParam();
- 1260   5                          ModeHint(); 
- 1261   5                          EnterPage(PAGE_TIME);
- 1262   5                          StartRem[3] = 0;
- 1263   5                       }
- 1264   4                  }
- 1265   3                 break; 
- 1266   3              }  
- 1267   2          }
- 1268   1      }
- 1269          
- 1270          //远程控制向从机写
- 1271          void RemCtlWrite()
- 1272          {
- 1273   1          SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_PARAM_ADD, 3, (BYTE *)&ModBusParam);
- 1274   1          
- 1275   1          SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_STATUS_ADD, 11, (BYTE *)&ModBusStatus);
- 1276   1      
- 1277   1          SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_INFO_ADD, 3, (BYTE *)&ModBusInfo);
- 1278   1      }
- 1279          
- 1280          
- 1281          //远程控制读从机
- 1282          void RemCtlTask()
- 1283          {   
- 1284   1              WORD RegCnt = 3;
- 1285   1              //RemCtlWrite();
- 1286   1          Delay(100);
- 1287   1      //    if (RunStatus.Running)
- 1288   1      //    {
- 1289   1               if(RemReadflag == 1)
- 1290   1              {
- 1291   2                  RemReadflag = 0;
- 1292   2      
- 1293   2                  SendRemCtlCmd(1, CMD_READ_REG, MODBUS_PARAM_ADD, RegCnt, NULL);
- 1294   2      
- 1295   2                  SendRemCtlCmd(1, CMD_READ_REG, MODBUS_STATUS_ADD, 11, NULL);
- 1296   2      
- 1297   2                  SendRemCtlCmd(1, CMD_READ_REG, MODBUS_INFO_ADD, 3, NULL);
- 1298   2      
- 1299   2      
- 1300   2              }
- 1301   1          //}
- 1302   1      }
- 1303          
- 1304          void main(void)
- 1305          {
- 1306   1          BYTE i = 0;
- 1307   1          SysInit();
- 1308   1          IoInit();
- 1309   1          PW_MAIN(1);  // 主电源
- 1310   1          LedInit();
- 1311   1          
- 1312   1          RUN_LED(1);
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 21  
+ 1247   3                  {
+ 1248   4                       if(!RemFlag[3])
+ 1249   4                      {
+ 1250   5                          RemFlag[3] = 1;
+ 1251   5                          StartRem[3]++;
+ 1252   5                          EnterPage(PAGE_REM);
+ 1253   5                          
+ 1254   5                       }
+ 1255   4                  }
+ 1256   3                  else
+ 1257   3                  {
+ 1258   4                       if(StartRem[3] != 0)
+ 1259   4                      {
+ 1260   5                          RemFlag[3] = 0;
+ 1261   5                          SendParam();
+ 1262   5                          ModeHint(); 
+ 1263   5                          EnterPage(PAGE_TIME);
+ 1264   5                          StartRem[3] = 0;
+ 1265   5                       }
+ 1266   4                  }
+ 1267   3                 break; 
+ 1268   3              }  
+ 1269   2          }
+ 1270   1      }
+ 1271          
+ 1272          //远程控制向从机写
+ 1273          void RemCtlWrite()
+ 1274          {
+ 1275   1          WORD RegCnt = 3;
+ 1276   1          WORD RegCnt2 = 11;
+ 1277   1          //SyncModBusDev();
+ 1278   1          
+ 1279   1          SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_PARAM_ADD, RegCnt, (BYTE *)&ModBusParam);
+ 1280   1          SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_STATUS_ADD, RegCnt2, (BYTE *)&ModBusStatus);
+ 1281   1          SendRemCtlCmd(1, CMD_WRITE_REG, MODBUS_INFO_ADD, RegCnt, (BYTE *)&ModBusInfo);
+ 1282   1      
+ 1283   1      }
+ 1284          
+ 1285          
+ 1286          //远程控制读从机
+ 1287          void RemCtlTask()
+ 1288          {   
+ 1289   1              WORD RegCnt = 3;
+ 1290   1          WORD RegCnt2 = 11;
+ 1291   1              //RemCtlWrite();
+ 1292   1      //    if (RunStatus.Running)
+ 1293   1      //    {
+ 1294   1               if(RemReadflag == 1)
+ 1295   1              {
+ 1296   2                  RemReadflag = 0;
+ 1297   2      
+ 1298   2                  SendRemCtlCmd(1, CMD_READ_REG, MODBUS_PARAM_ADD, RegCnt, NULL);
+ 1299   2                  SendRemCtlCmd(1, CMD_READ_REG, MODBUS_STATUS_ADD, RegCnt2, NULL);  
+ 1300   2                  SendRemCtlCmd(1, CMD_READ_REG, MODBUS_INFO_ADD, RegCnt, NULL);
+ 1301   2      
+ 1302   2              }
+ 1303   1          //}
+ 1304   1          //RemPageCtl();
+ 1305   1      }
+ 1306          
+ 1307          void main(void)
+ 1308          {
+ 1309   1          SysInit();
+ 1310   1          IoInit();
+ 1311   1          PW_MAIN(1);  // 主电源
+ 1312   1          LedInit();
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 21  
 
- 1313   1         
- 1314   1          Delay(200);
- 1315   1          
- 1316   1          Timer0Init();
- 1317   1          Delay(200);
- 1318   1          Adc_Init();
+ 1313   1          
+ 1314   1          RUN_LED(1);
+ 1315   1         
+ 1316   1          Delay(200);
+ 1317   1          
+ 1318   1          Timer0Init();
  1319   1          Delay(200);
- 1320   1          
- 1321   1          UART1_config();
- 1322   1          UART2_config();
- 1323   1          UART3_config();
- 1324   1          UART4_config();
- 1325   1          ClearUart1Buf();
- 1326   1          ClearUart2Buf();
- 1327   1          ClearUart3Buf();
- 1328   1          ClearUart4Buf();
- 1329   1          
- 1330   1          // 待CPU稳定了再读参数
- 1331   1          Delay(500);
- 1332   1          ReadParam();
- 1333   1          Delay(200);
- 1334   1      
- 1335   1          SyncModBusDev();
- 1336   1          //RemCtlWrite();
- 1337   1          
- 1338   1          
- 1339   1          RUN_LED(0);
- 1340   1      
- 1341   1          #if 0
+ 1320   1          Adc_Init();
+ 1321   1          Delay(200);
+ 1322   1          
+ 1323   1          UART1_config();
+ 1324   1          UART2_config();
+ 1325   1          UART3_config();
+ 1326   1          UART4_config();
+ 1327   1          ClearUart1Buf();
+ 1328   1          ClearUart2Buf();
+ 1329   1          ClearUart3Buf();
+ 1330   1          ClearUart4Buf();
+ 1331   1          
+ 1332   1          // 待CPU稳定了再读参数
+ 1333   1          Delay(500);
+ 1334   1          ReadParam();
+ 1335   1          Delay(200);
+ 1336   1      
+ 1337   1          SyncModBusDev();
+ 1338   1          RemCtlWrite();
+ 1339   1          
+ 1340   1          
+ 1341   1          RUN_LED(0);
+ 1342   1      
+ 1343   1          #if 0
                    while(1)
                    {
                        RUN_LED(0);
@@ -1397,49 +1399,47 @@ stmt  level    source
                        Delay(200);
                    }
                    #endif
- 1350   1          
- 1351   1          
- 1352   1          EA = 1;     //打开总中断
- 1353   1      
- 1354   1          WDT_CONTR |= (1<<5) |  7;  // 启动开门狗，约8秒
+ 1352   1          
+ 1353   1          
+ 1354   1          EA = 1;     //打开总中断
  1355   1      
- 1356   1          Delay(200);
- 1357   1          InitLcd();
- 1358   1          SysParam.RemCtlFlag = 0;
- 1359   1          PageSwitch = 0;
- 1360   1          while(1)
- 1361   1          {
- 1362   2              TimerTask();
- 1363   2              HndInput();
- 1364   2                   
- 1365   2              Uart1Hnd();
- 1366   2              Uart2Hnd();
- 1367   2              Uart3Hnd();
- 1368   2              //RemCtlWrite();
- 1369   2              RemPageCtl();
- 1370   2              
- 1371   2              FlowTask();
- 1372   2              
- 1373   2              Uart4Hnd();
+ 1356   1          WDT_CONTR |= (1<<5) |  7;  // 启动开门狗，约8秒
+ 1357   1      
+ 1358   1          Delay(200);
+ 1359   1          InitLcd();
+ 1360   1          SysParam.RemCtlFlag = 0;
+ 1361   1          PageSwitch = 0;
+ 1362   1          while(1)
+ 1363   1          {
+ 1364   2              HndInput();
+ 1365   2              TimerTask(); 
+ 1366   2              FlowTask();   
+ 1367   2              RemPageCtl(); 
+ 1368   2              RemCtlWrite();
+ 1369   2              Uart1Hnd();
+ 1370   2              Uart2Hnd();
+ 1371   2              Uart3Hnd();              
+ 1372   2              Uart4Hnd();
+ 1373   2              
  1374   2              RemCtlTask();
  1375   2          }
  1376   1      }
  1377          
  1378          
-C251 COMPILER V5.60.0,  main                                                               19/10/23  10:22:01  PAGE 22  
+C251 COMPILER V5.60.0,  main                                                               24/10/23  10:09:02  PAGE 22  
 
 
 
 Module Information          Static   Overlayable
 ------------------------------------------------
-  code size            =      5272     ------
+  code size            =      5292     ------
   ecode size           =    ------     ------
   data size            =    ------     ------
   idata size           =    ------     ------
   pdata size           =    ------     ------
-  xdata size           =       214     ------
+  xdata size           =       206     ------
   xdata-const size     =    ------     ------
-  edata size           =       148     ------
+  edata size           =       153     ------
   bit size             =    ------     ------
   ebit size            =    ------     ------
   bitaddressable size  =    ------     ------

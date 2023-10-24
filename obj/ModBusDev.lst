@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 1   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE ModBusDev
@@ -66,7 +66,7 @@ stmt  level    source
    55          {
    56   1          DWORD temp;
    57   1          temp = SwEndian(val);
-C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 2   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 2   
 
    58   1          memcpy(&DevReadAck.Data[Offset], &temp, 4);  
    59   1      }
@@ -134,7 +134,7 @@ stmt  level    source
   121   1      
   122   1          return true;
   123   1      }
-C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 3   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 3   
 
   124          
   125          //保存读数据
@@ -180,16 +180,16 @@ stmt  level    source
   165   1          WORD i = 0;
   166   1          WORD reg = 0;   
   167   1          memcpy(&reg, &ReadAckFrame.Data[0], 2);
-  168   1      
-  169   1          if(reg == RemRegAddr.SypAddr)
-  170   1          {
-  171   2              memcpy(&ModBusParam, (WORD *)&ReadAckFrame.Data, sizeof(MODBUS_PARAM));
+  168   1          if(reg == RemRegAddr.SypAddr)
+  169   1          {
+  170   2              printf("SypAddr = %x\r\n",RemRegAddr.SypAddr);
+  171   2              memcpy(&ModBusParam, &ReadAckFrame.Data, sizeof(MODBUS_PARAM));
   172   2          }
-  173   1          if(reg == RemRegAddr.StuAddr)
+  173   1          else if(reg == RemRegAddr.StuAddr)
   174   1          {
   175   2              memcpy(&ModBusStatus, &ReadAckFrame.Data, sizeof(MODBUS_STATUS));
   176   2          }
-  177   1          if(reg == RemRegAddr.InfoAddr)
+  177   1          else if(reg == RemRegAddr.InfoAddr)
   178   1          {
   179   2              memcpy(&ModBusInfo, &ReadAckFrame.Data, sizeof(MODBUS_INFO));
   180   2          }
@@ -202,7 +202,7 @@ stmt  level    source
   187          #if 0
                // 写命令应答处理
                void WriteAck(BYTE Mode)
-C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 4   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 4   
 
                {
                    WORD crc;
@@ -270,7 +270,7 @@ stmt  level    source
                        //ModBusSaveParam();
                        return true;
                    }
-C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 5   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 5   
 
                    
                    return false;
@@ -285,8 +285,8 @@ stmt  level    source
   266   1         //{
   267   1             //return;
   268   1         //}
-  269   1         //printf("Write = OK");
-  270   1         //return true;
+  269   1         printf("Write = OK\r\n");
+  270   1         return true;
   271   1          //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
   272   1      }
 *** WARNING C47 IN LINE 262 OF ModBus\ModBusDev.c: 'Mode': unreferenced parameter
@@ -296,39 +296,40 @@ stmt  level    source
   276          {
   277   1          if (!ValidRtuFrame(buf, len))
   278   1          {
-  279   2              return;
-  280   2          }
-  281   1          memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
-  282   1          memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
-  283   1          if(buf[0]!= SysParam.Address)
-  284   1          {
-  285   2              return;
-  286   2          }
-  287   1          switch(buf[1])
-  288   1          {
-  289   2              case CMD_READ_REG:
-  290   2              {
-  291   3                  memcpy(&ReadAckFrame, buf, len);
-  292   3                  ReadAck(); break; 
-  293   3                   
-  294   3              }
-  295   2              case CMD_WRITE_REG:
-  296   2              {
-  297   3                  memcpy(&WriteAckFrame, buf, len);
-  298   3                  WriteAckDev(Mode);  break;
-  299   3              }
-  300   2          }
-  301   1      }
-  302          
-  303          
-  304          
-*** WARNING C135 IN LINE 272 OF ModBus\ModBusDev.c: 'WriteAckDev': no return value
-*** WARNING C135 IN LINE 272 OF ModBus\ModBusDev.c: 'WriteAckDev': no return value
+  279   2              printf("eroor\r\n");
+  280   2              return;
+  281   2          }
+  282   1          printf("Hand\r\n");
+  283   1          //printf("SypAddr2 = %x\r\n",RemRegAddr.SypAddr);
+  284   1          memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
+  285   1          memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
+  286   1          if(buf[0]!= SysParam.Address)
+  287   1          {
+  288   2              return;
+  289   2          }
+  290   1          switch(buf[1])
+  291   1          {
+  292   2              case CMD_READ_REG:
+  293   2              {
+  294   3                  memcpy(&ReadAckFrame, buf, len);
+  295   3                  ReadAck(); break; 
+  296   3                   
+  297   3              }
+  298   2              case CMD_WRITE_REG:
+  299   2              {
+  300   3                  memcpy(&WriteAckFrame, buf, len);
+  301   3                  WriteAckDev(Mode);  break;
+  302   3              }
+  303   2          }
+  304   1      }
+  305          
+  306          
+  307          
 
 
 Module Information          Static   Overlayable
 ------------------------------------------------
-  code size            =       851     ------
+  code size            =       911     ------
   ecode size           =    ------     ------
   data size            =    ------     ------
   idata size           =    ------     ------
@@ -338,15 +339,15 @@ Module Information          Static   Overlayable
   edata size           =        49     ------
   bit size             =    ------     ------
   ebit size            =    ------     ------
-  bitaddressable size  =    ------     ------
-C251 COMPILER V5.60.0,  ModBusDev                                                          19/10/23  10:22:02  PAGE 6   
+C251 COMPILER V5.60.0,  ModBusDev                                                          24/10/23  10:09:03  PAGE 6   
 
+  bitaddressable size  =    ------     ------
   ebitaddressable size =    ------     ------
   far data size        =    ------     ------
   huge data size       =    ------     ------
   const size           =    ------     ------
-  hconst size          =         6     ------
+  hconst size          =        49     ------
 End of Module Information.
 
 
-C251 COMPILATION COMPLETE.  3 WARNING(S),  0 ERROR(S)
+C251 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

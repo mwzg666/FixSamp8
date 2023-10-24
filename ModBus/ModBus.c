@@ -21,8 +21,7 @@ WORD CRC16Calc(BYTE *dataBuff, DWORD dataLen)
                 CRCResult >>= 1;
             }
         }
-    }
-    
+    } 
     return (WORD)CRCResult;
 }
 
@@ -117,7 +116,9 @@ BYTE ValidRtuFrame(BYTE *abyRdBuf,BYTE len)
     //memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
     //memcpy(&ReadAckFrame, abyRdBuf, len);
     // ÅÐ¶ÏCRC
-    crc = CRC16Calc(abyRdBuf,len);
+
+    crc = CRC16Calc(abyRdBuf,len);    
+    //printf("crc = %x\r\n",crc);
     if (crc != 0)
     {
         return false;

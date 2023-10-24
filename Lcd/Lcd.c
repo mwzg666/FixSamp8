@@ -175,10 +175,8 @@ void ClearRevBuf()
 
 void HndLcdFrame()
 {
-
     LCD_FRAME *pFrame;
     pFrame = (LCD_FRAME *)&RecvBuf1[LcdFrameloc];
-    //printf("Handlcd\r\n");
     switch(pFrame->Cmd)
     {
         case LCD_CMD_READ:  ReadReg();    break;

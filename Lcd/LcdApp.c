@@ -82,7 +82,7 @@ void StartButton()
     dat = PopWord();
     if (dat == BUTTON_OK)
     {
-        
+
         StartSamp();
         NeedGetRet = true;
     }    
@@ -381,7 +381,6 @@ void ReadReg()
     WORD addr = SwWord(pFrame->Addr);
     //RemPageflag = 1;
     DebugInt(addr);
-    //printf("IOTest\r\n");
     switch (addr)
     {
         // ∆Ù∂ØΩÁ√Ê

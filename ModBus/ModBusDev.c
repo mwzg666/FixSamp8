@@ -165,16 +165,16 @@ BYTE ReadAck()
     WORD i = 0;
     WORD reg = 0;   
     memcpy(&reg, &ReadAckFrame.Data[0], 2);
-
     if(reg == RemRegAddr.SypAddr)
     {
-        memcpy(&ModBusParam, (WORD *)&ReadAckFrame.Data, sizeof(MODBUS_PARAM));
+        printf("SypAddr = %x\r\n",RemRegAddr.SypAddr);
+        memcpy(&ModBusParam, &ReadAckFrame.Data, sizeof(MODBUS_PARAM));
     }
-    if(reg == RemRegAddr.StuAddr)
+    else if(reg == RemRegAddr.StuAddr)
     {
         memcpy(&ModBusStatus, &ReadAckFrame.Data, sizeof(MODBUS_STATUS));
     }
-    if(reg == RemRegAddr.InfoAddr)
+    else if(reg == RemRegAddr.InfoAddr)
     {
         memcpy(&ModBusInfo, &ReadAckFrame.Data, sizeof(MODBUS_INFO));
     }
@@ -266,8 +266,8 @@ bool WriteAckDev(BYTE Mode)
    //{
        //return;
    //}
-   //printf("Write = OK");
-   //return true;
+   printf("Write = OK\r\n");
+   return true;
     //WriteRegValue(WriteAckFrame.RegAddr, WriteAckFrame.RegCount);
 }
 
@@ -276,8 +276,11 @@ void HndModBusRecv(BYTE Mode, BYTE *buf, BYTE len)
 {
     if (!ValidRtuFrame(buf, len))
     {
+        printf("eroor\r\n");
         return;
     }
+    printf("Hand\r\n");
+    //printf("SypAddr2 = %x\r\n",RemRegAddr.SypAddr);
     memset(&ReadAckFrame, 0, sizeof(DEVICE_READ_ACK));
     memset(&WriteAckFrame, 0, sizeof(DEVICE_WRITE_ACK));
     if(buf[0]!= SysParam.Address)

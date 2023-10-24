@@ -133,7 +133,7 @@ void UART4_config()
 
     // 中断优先级
     PS4H = 1;
-    PS4 = 1;    
+    PS4 = 0;    
     
     ES4 = 1;    // 串口4中断允许
     S4REN = 1;  // 允许串口接收数据
@@ -375,7 +375,7 @@ void Uart4Hnd()
     if (Rx4_Timer > 20)
     {
         Rx4_Timer = 0;
-
+        //printf("SypAddr3 = %x\r\n",RemRegAddr.SypAddr);
         HndModBusRecv(RS485, RX4_Buffer,RX4_Cnt);
         
         ClearUart4Buf();
